@@ -3,7 +3,7 @@
 //  
 
 import Foundation
-import FastusObjC
+import BootstrapObjC
 
 class LoadingWindow: OverlayWindow {
     

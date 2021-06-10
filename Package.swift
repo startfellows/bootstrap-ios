@@ -41,6 +41,7 @@ let package = Package(
         .target(
             name: "BootstrapUI",
             dependencies: [
+                "BootstrapObjC",
                 "BootstrapUtilites"
             ],
             path: "Sources/UI",
