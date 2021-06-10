@@ -16,6 +16,7 @@ let package = Package(
         .library(name: "BootstrapUI", targets: ["BootstrapUI"]),
         .library(name: "BootstrapAPI", targets: ["BootstrapAPI"]),
         .library(name: "BootstrapObjC", targets: ["BootstrapObjC"]),
+        .library(name: "BootstrapMicrophone", targets: ["BootstrapMicrophone"]),
         .library(name: "BootstrapModules", targets: ["BootstrapModules"])
     ],
     dependencies: [
@@ -53,6 +54,16 @@ let package = Package(
                 "BootstrapUtilites"
             ],
             path: "Sources/API",
+            swiftSettings: [
+                .define("DEBUG", .when(configuration: .debug))
+            ]
+        ),
+        .target(
+            name: "BootstrapMicrophone",
+            dependencies: [
+                "BootstrapUtilites"
+            ],
+            path: "Sources/Microphone",
             swiftSettings: [
                 .define("DEBUG", .when(configuration: .debug))
             ]
