@@ -15,6 +15,7 @@ let package = Package(
         .library(name: "BootstrapUtilites", targets: ["BootstrapUtilites"]),
         .library(name: "BootstrapUI", targets: ["BootstrapUI"]),
         .library(name: "BootstrapAPI", targets: ["BootstrapAPI"]),
+        .library(name: "BootstrapObjC", targets: ["BootstrapObjC"]),
         .library(name: "BootstrapModules", targets: ["BootstrapModules"])
     ],
     dependencies: [
@@ -29,6 +30,12 @@ let package = Package(
             swiftSettings: [
                 .define("DEBUG", .when(configuration: .debug))
             ]
+        ),
+        .target(
+            name: "BootstrapObjC",
+            dependencies: [],
+            path: "Sources/ObjC",
+            publicHeadersPath: "Include"
         ),
         .target(
             name: "BootstrapUI",
