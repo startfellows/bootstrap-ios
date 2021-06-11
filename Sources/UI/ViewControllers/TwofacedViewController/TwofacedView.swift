@@ -262,6 +262,9 @@ class TwofacedView: UIView {
     }
     
     func set(topView: UIView, bottomView: UIView) {
+        topView.autoresizingMask = []
+        bottomView.autoresizingMask = []
+        
         self.topView?.removeFromSuperview()
         self.topViewBackgroundColorObservation?.invalidate()
         self.topViewBackgroundColorObservation = nil
