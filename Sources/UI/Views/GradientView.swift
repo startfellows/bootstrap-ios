@@ -57,17 +57,13 @@ internal class GradientLayer: CALayer {
             return super.action(forKey: event)
         }
         
-        guard let animation = action(forKey: #keyPath(backgroundColor)) as? CABasicAnimation
-        else {
-            setNeedsDisplay()
-            return nil
-        }
+        let action = _action({ animation in
+            animation?.keyPath = event
+            animation?.fromValue = presentation()?.value(forKeyPath: event) ?? value(forKeyPath: event)
+            animation?.toValue = nil
+        })
         
-        animation.keyPath = event
-        animation.fromValue = presentation()?.value(forKeyPath: event)
-        animation.toValue = nil
-        
-        return animation
+        return action
     }
     
     override func display() {
@@ -126,6 +122,20 @@ internal class GradientLayer: CALayer {
         let end = CGPoint(x: 0 + CGFloat(y), y: 1 - CGFloat(x))
       
         return (start, end)
+    }
+    
+    private func _action(_ animation: ((_ animation: CABasicAnimation?) -> ())) -> CAAction? {
+        let system = action(forKey: #keyPath(backgroundColor))
+        let sel = NSSelectorFromString("pendingAnimation")
+        
+        if let expanded = system as? CABasicAnimation {
+            animation(expanded)
+        } else if let expanded = system as? NSObject, expanded.responds(to: sel) {
+            let value = expanded.value(forKeyPath: "_pendingAnimation")
+            animation(value as? CABasicAnimation)
+        }
+        
+        return system
     }
 }
 
