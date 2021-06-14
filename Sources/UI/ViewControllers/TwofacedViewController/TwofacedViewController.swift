@@ -4,12 +4,21 @@
 
 import UIKit
 
+public protocol TwofacedViewControllerDelegate: NSObjectProtocol {
+    
+    func twofacedViewController(_ viewController: TwofacedViewController, didStartUserInteraction progress: CGFloat)
+    func twofacedViewController(_ viewController: TwofacedViewController, didContinueUserInteraction progress: CGFloat)
+    func twofacedViewController(_ viewController: TwofacedViewController, didEndUserInteraction progress: CGFloat)
+}
+
 open class TwofacedViewController: UIViewController {
     
     private var twofacedView: TwofacedView { view as! TwofacedView }
     
     public let topViewController: UIViewController
     public let bottomViewController: UIViewController
+    
+    public weak var delegate: TwofacedViewControllerDelegate?
     
     private var appearanceViewController: UIViewController {
         switch twofacedView.presentationState {
@@ -94,6 +103,15 @@ extension TwofacedViewController: TwofacedViewDelegate {
     func twofacedView(_ view: TwofacedView, didStartUserInteraction gestureRecognizer: UIPanGestureRecognizer) {
         feedbackGenerator.prepare()
         temporaryPresentationState = twofacedView.presentationState
+        delegate?.twofacedViewController(self, didStartUserInteraction: twofacedView.presentationState == .top ? 0 : 1)
+    }
+    
+    func twofacedView(_ view: TwofacedView, didContinueUserInteraction gestureRecognizer: UIPanGestureRecognizer, progress: CGFloat) {
+        delegate?.twofacedViewController(self, didContinueUserInteraction: progress)
+    }
+    
+    func twofacedView(_ view: TwofacedView, didEndUserInteraction gestureRecognizer: UIPanGestureRecognizer, state: PresentationState) {
+        delegate?.twofacedViewController(self, didEndUserInteraction: state == .top ? 0 : 1)
     }
     
     func twofacedView(_ view: TwofacedView, didChangePresentationState state: PresentationState, previousState: PresentationState) {
