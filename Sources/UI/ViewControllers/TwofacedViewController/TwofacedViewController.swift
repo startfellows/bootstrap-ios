@@ -135,6 +135,8 @@ extension TwofacedViewController: TwofacedViewDelegate {
     }
     
     func twofacedView(_ view: TwofacedView, didChangePresentationState state: PresentationState, previousState: PresentationState) {
+        delegate?.twofacedViewController(self, didUpdateViewPresentation: TwofacedViewPresentation.with(state))
+        
         guard let temporaryPresentationState = temporaryPresentationState
         else {
             return
@@ -154,8 +156,6 @@ extension TwofacedViewController: TwofacedViewDelegate {
             feedbackGenerator.selectionChanged()
             updateAppearance(animated: true)
         }
-        
-        delegate?.twofacedViewController(self, didUpdateViewPresentation: TwofacedViewPresentation.with(state))
     }
 }
 
