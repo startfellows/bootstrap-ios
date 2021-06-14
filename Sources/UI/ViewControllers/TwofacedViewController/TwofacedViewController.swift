@@ -6,9 +6,33 @@ import UIKit
 
 public protocol TwofacedViewControllerDelegate: NSObjectProtocol {
     
-    func twofacedViewController(_ viewController: TwofacedViewController, didStartUserInteraction progress: CGFloat)
-    func twofacedViewController(_ viewController: TwofacedViewController, didContinueUserInteraction progress: CGFloat)
-    func twofacedViewController(_ viewController: TwofacedViewController, didEndUserInteraction progress: CGFloat)
+    func twofacedViewController(_ viewController: TwofacedViewController, didUpdateViewPresentation presentation: TwofacedViewPresentation)
+}
+
+public enum TwofacedViewPresentation {
+
+    case top
+    case bottom
+    case interaction(value: CGFloat)
+}
+
+extension TwofacedViewPresentation {
+    
+    func state() -> PresentationState {
+        switch self {
+        case .top: return .top
+        case .bottom: return .bottom
+        case .interaction(let value): return .progress(progress: value)
+        }
+    }
+    
+    static func with(_ state: PresentationState) -> TwofacedViewPresentation {
+        switch state {
+        case .top: return .top
+        case .bottom: return .bottom
+        case .progress(let progress): return .interaction(value: progress)
+        }
+    }
 }
 
 open class TwofacedViewController: UIViewController {
@@ -17,6 +41,11 @@ open class TwofacedViewController: UIViewController {
     
     public let topViewController: UIViewController
     public let bottomViewController: UIViewController
+    
+    public var viewPresentation: TwofacedViewPresentation {
+        get { TwofacedViewPresentation.with(twofacedView.presentationState) }
+        set { twofacedView.set(presentationState: newValue.state(), animated: true) }
+    }
     
     public weak var delegate: TwofacedViewControllerDelegate?
     
@@ -103,15 +132,6 @@ extension TwofacedViewController: TwofacedViewDelegate {
     func twofacedView(_ view: TwofacedView, didStartUserInteraction gestureRecognizer: UIPanGestureRecognizer) {
         feedbackGenerator.prepare()
         temporaryPresentationState = twofacedView.presentationState
-        delegate?.twofacedViewController(self, didStartUserInteraction: twofacedView.presentationState == .top ? 0 : 1)
-    }
-    
-    func twofacedView(_ view: TwofacedView, didContinueUserInteraction gestureRecognizer: UIPanGestureRecognizer, progress: CGFloat) {
-        delegate?.twofacedViewController(self, didContinueUserInteraction: progress)
-    }
-    
-    func twofacedView(_ view: TwofacedView, didEndUserInteraction gestureRecognizer: UIPanGestureRecognizer, state: PresentationState) {
-        delegate?.twofacedViewController(self, didEndUserInteraction: state == .top ? 0 : 1)
     }
     
     func twofacedView(_ view: TwofacedView, didChangePresentationState state: PresentationState, previousState: PresentationState) {
@@ -134,6 +154,8 @@ extension TwofacedViewController: TwofacedViewDelegate {
             feedbackGenerator.selectionChanged()
             updateAppearance(animated: true)
         }
+        
+        delegate?.twofacedViewController(self, didUpdateViewPresentation: TwofacedViewPresentation.with(state))
     }
 }
 

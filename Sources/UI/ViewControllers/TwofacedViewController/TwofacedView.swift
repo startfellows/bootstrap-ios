@@ -65,10 +65,7 @@ fileprivate extension UIPanGestureRecognizer {
 protocol TwofacedViewDelegate: NSObjectProtocol {
     
     func twofacedView(_ view: TwofacedView, didChangePresentationState state: PresentationState, previousState: PresentationState)
-    
     func twofacedView(_ view: TwofacedView, didStartUserInteraction gestureRecognizer: UIPanGestureRecognizer)
-    func twofacedView(_ view: TwofacedView, didContinueUserInteraction gestureRecognizer: UIPanGestureRecognizer, progress: CGFloat)
-    func twofacedView(_ view: TwofacedView, didEndUserInteraction gestureRecognizer: UIPanGestureRecognizer, state: PresentationState)
 }
 
 class TwofacedView: UIView {
@@ -370,7 +367,6 @@ class TwofacedView: UIView {
             if panGestureRecognizer.state == .cancelled {
                 let state: PresentationState = currentProgress > 0.5 ? .bottom : .top
                 set(presentationState: state, animated: true)
-                delegate?.twofacedView(self, didEndUserInteraction: panGestureRecognizer, state: state)
             } else if panGestureRecognizer.state == .ended {
                 let velocity = panGestureRecognizer.velocity(in: self)
                 let threshold: CGFloat = 42
@@ -382,12 +378,10 @@ class TwofacedView: UIView {
                     state = velocity.y > 0 ? .top : .bottom
                     set(presentationState: state, velocity: velocity)
                 }
-                delegate?.twofacedView(self, didEndUserInteraction: panGestureRecognizer, state: state)
             } else if panGestureRecognizer.state == .changed {
                 let translation = panGestureRecognizer.translation(in: self)
                 let updatedProgress = panGestureRecognizer.startProgress - translation.y / bounds.height
                 set(presentationState: .progress(progress: updatedProgress), animated: false)
-                delegate?.twofacedView(self, didContinueUserInteraction: panGestureRecognizer, progress: updatedProgress)
             }
         } else if panGestureRecognizer.state == .began {
             delegate?.twofacedView(self, didStartUserInteraction: panGestureRecognizer)
