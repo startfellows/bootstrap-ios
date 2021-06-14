@@ -49,7 +49,7 @@ open class TwofacedViewController: UIViewController {
     open override func viewDidLoad() {
         super.viewDidLoad()
         
-        view.backgroundColor = .systemBackground
+        view.backgroundColor = .clear
         
         addChild(topViewController)
         addChild(bottomViewController)
