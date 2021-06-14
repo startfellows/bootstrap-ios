@@ -4,10 +4,22 @@
 
 import UIKit
 
+public enum InfinityCollectionViewLayoutBorder: Equatable {
+    
+    case top
+    case bottom
+}
+
 public class InfinityCollectionViewLayout: UICollectionViewFlowLayout {
     
     private var pendingDeletingIndexPaths: [IndexPath] = []
     private var pendingInseringIndexPaths: [IndexPath] = []
+    
+    public var borders: [InfinityCollectionViewLayoutBorder] = [.top, .bottom] {
+        didSet {
+            invalidateLayout()
+        }
+    }
     
     public override func prepare(forCollectionViewUpdates updateItems: [UICollectionViewUpdateItem]) {
         super.prepare(forCollectionViewUpdates: updateItems)
@@ -130,34 +142,36 @@ public class InfinityCollectionViewLayout: UICollectionViewFlowLayout {
             let cellOffsetB = contentOffset.y + collectionView.bounds.height - cellMaxY - sectionInset.bottom - sectionInset.top
         
             if cellOffsetT < 0 {
-                let scale = min(max(1 - (abs(cellOffsetT)) / layoutAttributes.size.width, 0), 1)
-                layoutAttributes.center = CGPoint(
-                    x: layoutAttributes.center.x,
-                    y: layoutAttributes.center.y + abs(cellOffsetT)
-                )
-                
-                var transform: CGAffineTransform = .identity
-                transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
-                transform = transform.concatenating(CGAffineTransform(translationX: 0, y: -(layoutAttributes.size.height - layoutAttributes.size.height * scale) / 2))
-                
-                layoutAttributes.transform = transform
-                layoutAttributes.alpha = pow(scale, 21)
-                
+                if borders.contains(.top) {
+                    let scale = min(max(1 - (abs(cellOffsetT)) / layoutAttributes.size.width, 0), 1)
+                    layoutAttributes.center = CGPoint(
+                        x: layoutAttributes.center.x,
+                        y: layoutAttributes.center.y + abs(cellOffsetT)
+                    )
+
+                    var transform: CGAffineTransform = .identity
+                    transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
+                    transform = transform.concatenating(CGAffineTransform(translationX: 0, y: -(layoutAttributes.size.height - layoutAttributes.size.height * scale) / 2))
+
+                    layoutAttributes.transform = transform
+                    layoutAttributes.alpha = pow(scale, 21)
+                }
                 updatedLayoutAtrributesArray.append(layoutAttributes)
             } else if cellOffsetB < 0 {
-                let scale = min(max(1 - (abs(cellOffsetB) / 2) / layoutAttributes.size.width, 0), 1)
-                layoutAttributes.center = CGPoint(
-                    x: layoutAttributes.center.x,
-                    y: contentOffset.y + collectionView.bounds.height - layoutAttributes.size.height / 2 - sectionInset.bottom - sectionInset.top
-                )
-                
-                var transform: CGAffineTransform = .identity.scaledBy(x: scale, y: scale)
-                transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
-                transform = transform.concatenating(CGAffineTransform(translationX: 0, y: (layoutAttributes.size.height - layoutAttributes.size.height * scale) / 2))
-                
-                layoutAttributes.transform = transform
-                layoutAttributes.alpha = pow(scale, 21)
-                
+                if borders.contains(.bottom) {
+                    let scale = min(max(1 - (abs(cellOffsetB) / 2) / layoutAttributes.size.width, 0), 1)
+                    layoutAttributes.center = CGPoint(
+                        x: layoutAttributes.center.x,
+                        y: contentOffset.y + collectionView.bounds.height - layoutAttributes.size.height / 2 - sectionInset.bottom - sectionInset.top
+                    )
+                    
+                    var transform: CGAffineTransform = .identity.scaledBy(x: scale, y: scale)
+                    transform = transform.concatenating(CGAffineTransform(scaleX: scale, y: scale))
+                    transform = transform.concatenating(CGAffineTransform(translationX: 0, y: (layoutAttributes.size.height - layoutAttributes.size.height * scale) / 2))
+                    
+                    layoutAttributes.transform = transform
+                    layoutAttributes.alpha = pow(scale, 21)
+                }
                 updatedLayoutAtrributesArray.append(layoutAttributes)
             } else {
                 layoutAttributes.zIndex = 1
