@@ -182,7 +182,7 @@ class TwofacedView: UIView {
     
     private let panGestureRecognizer: UIPanGestureRecognizer = UIPanGestureRecognizer()
     
-    private var _presentationState: PresentationState = .bottom
+    private var _presentationState: PresentationState = .top
     private(set) var presentationState: PresentationState {
         get { _presentationState }
         set {
