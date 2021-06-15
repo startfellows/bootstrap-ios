@@ -23,8 +23,6 @@ final public class AuthenticationViewController: UIViewController {
     static var h: Any? = nil
     
     @IBAction func sfLoginButtonDidClick(_ sender: UIButton) {
-        API.current.authenticate().receive(on: DispatchQueue.main).sink(receiveValue: { done in
-            self.delegate?.authenticationViewController(self, didAuthenticate: done)
-        }).store(in: &API.current.store.cancellable)
+        self.delegate?.authenticationViewController(self, didAuthenticate: true)
     }
 }
