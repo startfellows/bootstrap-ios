@@ -403,6 +403,20 @@ class TwofacedView: UIView {
 
 extension TwofacedView: UIGestureRecognizerDelegate {
     
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldBeRequiredToFailBy otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard let scrollViewgestureRecognizer = otherGestureRecognizer as? UIPanGestureRecognizer,
+              let scrollView = scrollViewgestureRecognizer.view as? UIScrollView
+        else {
+            return false
+        }
+        
+        if scrollView.contentOffset.y < -scrollView.safeAreaInsets.top {
+            return true
+        }
+        
+        return false
+    }
+    
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if otherGestureRecognizer.isKind(of: UIPanGestureRecognizer.self) {
             return false
