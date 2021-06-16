@@ -84,40 +84,40 @@ public class InfinityCollectionViewLayout: UICollectionViewFlowLayout {
         return layoutAttributes
     }
     
-    public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
-        guard let collectionView = collectionView,
-              let layoutAttributes = layoutAttributesForElements(in: collectionView.bounds, contentOffset: proposedContentOffset)
-        else {
-            return proposedContentOffset
-        }
-        
-        var lastScaledLayoutAttributes: UICollectionViewLayoutAttributes? = nil
-        for elementLayoutAttributes in layoutAttributes {
-            if elementLayoutAttributes.transform == .identity {
-                break
-            }
-            lastScaledLayoutAttributes = elementLayoutAttributes.copy() as? UICollectionViewLayoutAttributes
-        }
-        
-        guard let lastScaledLayoutAttributes = lastScaledLayoutAttributes
-        else {
-            return proposedContentOffset
-        }
-        
-        lastScaledLayoutAttributes.transform = .identity
-        
-        let matchedLastScaledContentOffsetY = (lastScaledLayoutAttributes.frame.height + minimumLineSpacing) * CGFloat(lastScaledLayoutAttributes.indexPath.item)
-        let matchedNextNormalContentOffsetY = matchedLastScaledContentOffsetY + lastScaledLayoutAttributes.frame.height + minimumLineSpacing
-        
-        var contentOffset = proposedContentOffset
-        if lastScaledLayoutAttributes.alpha < 0.2 {
-            contentOffset.y = matchedNextNormalContentOffsetY
-        } else {
-            contentOffset.y = matchedLastScaledContentOffsetY
-        }
-        
-        return contentOffset
-    }
+//    public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+//        guard let collectionView = collectionView,
+//              let layoutAttributes = layoutAttributesForElements(in: collectionView.bounds, contentOffset: proposedContentOffset)
+//        else {
+//            return proposedContentOffset
+//        }
+//        
+//        var lastScaledLayoutAttributes: UICollectionViewLayoutAttributes? = nil
+//        for elementLayoutAttributes in layoutAttributes {
+//            if elementLayoutAttributes.transform == .identity {
+//                break
+//            }
+//            lastScaledLayoutAttributes = elementLayoutAttributes.copy() as? UICollectionViewLayoutAttributes
+//        }
+//        
+//        guard let lastScaledLayoutAttributes = lastScaledLayoutAttributes
+//        else {
+//            return proposedContentOffset
+//        }
+//        
+//        lastScaledLayoutAttributes.transform = .identity
+//        
+//        let matchedLastScaledContentOffsetY = (lastScaledLayoutAttributes.frame.height + minimumLineSpacing) * CGFloat(lastScaledLayoutAttributes.indexPath.item)
+//        let matchedNextNormalContentOffsetY = matchedLastScaledContentOffsetY + lastScaledLayoutAttributes.frame.height + minimumLineSpacing
+//        
+//        var contentOffset = proposedContentOffset
+//        if lastScaledLayoutAttributes.alpha < 0.2 {
+//            contentOffset.y = matchedNextNormalContentOffsetY
+//        } else {
+//            contentOffset.y = matchedLastScaledContentOffsetY
+//        }
+//        
+//        return contentOffset
+//    }
     
     private func layoutAttributesForElements(in rect: CGRect, contentOffset: CGPoint) -> [UICollectionViewLayoutAttributes]? {
         var updatedLayoutAtrributesArray: [UICollectionViewLayoutAttributes] = []
