@@ -21,6 +21,7 @@ let package = Package(
     ],
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "0.4.3")),
+        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", .upToNextMajor(from: "4.2.2")),
         .package(url: "https://github.com/onevcat/Rainbow", .upToNextMajor(from: "4.0.0"))
     ],
     targets: [
@@ -52,7 +53,8 @@ let package = Package(
         .target(
             name: "BootstrapAPI",
             dependencies: [
-                "BootstrapUtilites"
+                "BootstrapUtilites",
+                "KeychainAccess"
             ],
             path: "Sources/API",
             swiftSettings: [

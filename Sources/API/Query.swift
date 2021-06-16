@@ -18,4 +18,10 @@ public protocol Query: Codable {
     var type: QueryType { get }
     var path: String { get }
     var headers: [String : String] { get }
+    var authentication: Bool { get }
+}
+
+public extension Query {
+    
+    var authentication: Bool { true }
 }

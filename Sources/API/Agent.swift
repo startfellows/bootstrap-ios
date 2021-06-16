@@ -9,6 +9,8 @@ public class Agent {
     
     public struct Configuration {
         
+        public typealias Authentication = (_ agent: Agent, _ request: inout URLRequest) -> Void
+        
         public enum Printable {
             
             case none
@@ -19,10 +21,16 @@ public class Agent {
         public let baseURL: URL
         public let headers: [String : String]
         public var printable: Printable = .verbose
+        public let authentication: Authentication
         
-        public init(server: Server, headers: [String : String]) {
+        public var keychainServiceName: String
+        public var accessGroup: String?
+        
+        public init(server: Server, headers: [String : String], authentication: @escaping Authentication) {
             self.baseURL = server.rawValue
             self.headers = headers
+            self.authentication = authentication
+            self.keychainServiceName = Bundle.main.bundleIdentifier ?? "bootstrap-ios"
         }
     }
     
@@ -35,10 +43,13 @@ public class Agent {
     let encoder = JSONEncoder()
     
     fileprivate var store: Store = Store()
+    
     public let configuration: Configuration
+    public let keychain: Keychain
     
     public init(configuration: Configuration) {
         self.configuration = configuration
+        self.keychain = Keychain(serviceName: configuration.keychainServiceName, accessGroup: configuration.keychainServiceName)
     }
     
     public func perform<Q: Query>(_ query: Q) -> AnyPublisher<Q.R, Error> {
@@ -77,6 +88,10 @@ public class Agent {
             .map(\.data)
             .decode(type: Q.R.self, decoder: decoder)
             .share()
+        
+        if query.authentication {
+            configuration.authentication(self, &request)
+        }
         
         share.sink(receiveCompletion: { receive in
             switch receive {
