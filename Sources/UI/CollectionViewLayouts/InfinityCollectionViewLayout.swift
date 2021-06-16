@@ -155,6 +155,7 @@ public class InfinityCollectionViewLayout: UICollectionViewFlowLayout {
 
                     layoutAttributes.transform = transform
                     layoutAttributes.alpha = pow(scale, 21)
+                    layoutAttributes.zIndex = -1
                 }
                 updatedLayoutAtrributesArray.append(layoutAttributes)
             } else if cellOffsetB < 0 {
@@ -171,6 +172,7 @@ public class InfinityCollectionViewLayout: UICollectionViewFlowLayout {
                     
                     layoutAttributes.transform = transform
                     layoutAttributes.alpha = pow(scale, 21)
+                    layoutAttributes.zIndex = -1
                 }
                 updatedLayoutAtrributesArray.append(layoutAttributes)
             } else {
