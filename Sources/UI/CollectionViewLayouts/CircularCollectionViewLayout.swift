@@ -130,9 +130,9 @@ public class CircularCollectionViewLayout: UICollectionViewLayout {
             attributes.size = self.itemSize
             attributes.center = CGPoint(x: centerX, y: collectionView.bounds.midY)
             attributes.angle = self.angle + (self.anglePerItem * CGFloat(i))
+            attributes.alpha = 1 - max(min(abs(attributes.angle * 5), 1), 0)
             attributes.anchorPoint = CGPoint(x: 0.5, y: anchorPointY)
             return attributes
-            
         }
     }
     
