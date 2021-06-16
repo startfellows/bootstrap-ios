@@ -32,9 +32,16 @@ internal class WaveformItemCell: UICollectionViewCell, UICollectionViewIdentifia
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        let height = bounds.height * CGFloat(multiplier)
-        itemView.frame = CGRect(x: 0, y: (bounds.height - height) / 2, width: bounds.width, height: height)
-        itemView.layer.cornerRadius = bounds.width / 2
+        if bounds.height > bounds.width {
+            let height = bounds.height * CGFloat(multiplier)
+            itemView.frame = CGRect(x: 0, y: (bounds.height - height) / 2, width: bounds.width, height: height)
+            itemView.layer.cornerRadius = bounds.width / 2
+        } else {
+            let width = bounds.width * CGFloat(multiplier)
+            itemView.frame = CGRect(x: (bounds.width - width) / 2, y: 0, width: width, height: bounds.height)
+            itemView.layer.cornerRadius = bounds.height / 2
+        }
+        
         itemView.layer.cornerCurve = .continuous
     }
 }
@@ -105,6 +112,16 @@ public class WaveformView: UIView {
     public override func layoutSubviews() {
         super.layoutSubviews()
         collectionView.frame = bounds
+        
+        var scrollDirection: UICollectionView.ScrollDirection = .horizontal
+        if bounds.height > bounds.width {
+            scrollDirection = .vertical
+        }
+        
+        if collectionViewLayout.scrollDirection != scrollDirection {
+            collectionViewLayout.scrollDirection = scrollDirection
+            collectionViewLayout.invalidateLayout()
+        }
     }
     
     private func wave(for indexPath: IndexPath) -> Double {
@@ -133,7 +150,11 @@ extension WaveformView: UICollectionViewDataSource {
 extension WaveformView: UICollectionViewDelegateFlowLayout {
     
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: itemWidth, height: bounds.height)
+        if bounds.height > bounds.width {
+            return CGSize(width: bounds.width, height: itemWidth)
+        } else {
+            return CGSize(width: itemWidth, height: bounds.height)
+        }
     }
 }
 
