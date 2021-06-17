@@ -91,6 +91,7 @@ public class WaveformView: UIView {
     }
     
     private func initialize() {
+        collectionView.isUserInteractionEnabled = false
         collectionViewLayout.scrollDirection = .horizontal
         collectionViewLayout.minimumInteritemSpacing = 0
         
