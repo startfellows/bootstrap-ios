@@ -4,81 +4,9 @@
 
 import UIKit
 
-open class CircularCollectionViewCell: UICollectionViewCell{
-  
-    open override func apply(_ layoutAttributes: UICollectionViewLayoutAttributes) {
-        super.apply(layoutAttributes)
+public class CircularCollectionViewLayout: UICollectionViewFlowLayout {
     
-        guard let circularlayoutAttributes = layoutAttributes as? CircularCollectionViewLayoutAttributes
-        else {
-            return
-        }
-    
-        layer.anchorPoint = circularlayoutAttributes.anchorPoint
-        center.y += (circularlayoutAttributes.anchorPoint.y - 0.5) * self.bounds.height
-    }
-}
-
-public class CircularCollectionViewLayoutAttributes: UICollectionViewLayoutAttributes {
-  // 1
-  var anchorPoint = CGPoint(x: 0.5, y: 0.5)
-  var angle: CGFloat = 0 {
-    // 2
-    didSet {
-      zIndex = Int(angle * 1000000)
-      transform = CGAffineTransform(rotationAngle: angle)
-    }
-  }
-  // 3 override
-    public override func copy(with zone: NSZone? = nil) -> Any {
-    let copiedAttributes: CircularCollectionViewLayoutAttributes = super.copy(with: zone) as! CircularCollectionViewLayoutAttributes
-    copiedAttributes.anchorPoint = self.anchorPoint
-    copiedAttributes.angle = self.angle
-    return copiedAttributes
-  }
-
-}
-
-public class CircularCollectionViewLayout: UICollectionViewLayout {
-    
-    var itemSize: CGSize {
-        let height = collectionView?.bounds.height ?? 0
-        return CGSize(width: itemWidth, height: height)
-    }
-    
-    var anglePerItem: CGFloat {
-        return atan(itemSize.width / radius)
-    }
-    
-    var angleAtExtreme: CGFloat {
-        guard let collectionView = collectionView
-        else {
-            return 0
-        }
-        
-        return collectionView.numberOfItems(inSection: 0) > 0 ? -CGFloat(collectionView.numberOfItems(inSection: 0) - 1) * anglePerItem : 0
-    }
-    
-    var angle: CGFloat {
-        guard let collectionView = collectionView
-        else {
-            return 0
-        }
-        
-        return angleAtExtreme * collectionView.contentOffset.x / (collectionViewContentSize.width - collectionView.bounds.width)
-    }
-    
-    public var itemWidth: CGFloat = 64 {
-        didSet {
-            invalidateLayout()
-        }
-    }
-  
-    public var radius: CGFloat = 1000 {
-        didSet {
-            invalidateLayout()
-        }
-    }
+    public override var scrollDirection: UICollectionView.ScrollDirection { set {} get { .horizontal } }
     
     public override var collectionViewContentSize: CGSize {
         guard let collectionView = collectionView
@@ -86,92 +14,141 @@ public class CircularCollectionViewLayout: UICollectionViewLayout {
             return .zero
         }
         
-        let width = CGFloat(collectionView.numberOfItems(inSection: 0)) * itemSize.width
-        let height = collectionView.bounds.height
-    
-        return CGSize(width: width, height: height)
+        let delegate = collectionView.delegate as? UICollectionViewDelegateFlowLayout
+        var width: CGFloat = .zero
+        
+        let numberOfSections = collectionView.numberOfSections
+        for i in 0..<numberOfSections {
+            let numberOfItems = collectionView.numberOfItems(inSection: i)
+            for k in 0..<numberOfItems {
+                let size = delegate?.collectionView?(collectionView, layout: self, sizeForItemAt: IndexPath(item: k, section: i)) ?? itemSize
+                width += size.width
+                
+                if (i == 0 && k == 0) || (i == numberOfSections - 1 && k == numberOfItems - 1) {
+                    width += (collectionView.bounds.width - size.width) / 2
+                }
+                
+                if k < numberOfItems - 1 {
+                    width += delegate?.collectionView?(collectionView, layout: self, minimumLineSpacingForSectionAt: i) ?? minimumLineSpacing
+                }
+            }
+        }
+        
+        return CGSize(width: width, height: collectionView.bounds.height)
     }
     
-    private var attributesList = [CircularCollectionViewLayoutAttributes]()
-
-    class func layoutAttributesClass() -> AnyClass {
-        return CircularCollectionViewLayoutAttributes.self
-    }
-
     public override func prepare() {
         super.prepare()
-        
-        guard let collectionView = collectionView
-        else {
-            return
-        }
+        super.scrollDirection = .horizontal
+    }
     
-        let centerX = collectionView.contentOffset.x + (collectionView.bounds.width / 2.0)
-        let anchorPointY = ((itemSize.height / 2.0) + radius) / itemSize.height
-    
-        let theta = atan2(collectionView.bounds.width / 2.0, radius + (itemSize.height / 2.0) - (collectionView.bounds.height / 2.0))
-        
-        var startIndex = 0
-        var endIndex = collectionView.numberOfItems(inSection: 0) - 1
-        
-        if (angle < -theta) {
-            startIndex = Int(floor((-theta - angle) / anglePerItem))
-        }
-        
-        endIndex = min(endIndex, Int(ceil((theta - angle) / anglePerItem)))
-        
-        if (endIndex < startIndex) {
-            endIndex = 0
-            startIndex = 0
-        }
-        
-        attributesList = (startIndex...endIndex).map { (i) -> CircularCollectionViewLayoutAttributes in
-            let attributes = CircularCollectionViewLayoutAttributes(forCellWith: IndexPath(item: i, section: 0))
-            attributes.size = self.itemSize
-            attributes.center = CGPoint(x: centerX, y: collectionView.bounds.midY)
-            attributes.angle = self.angle + (self.anglePerItem * CGFloat(i))
-            attributes.alpha = 1 - max(min(abs(attributes.angle * 5), 1), 0)
-            attributes.anchorPoint = CGPoint(x: 0.5, y: anchorPointY)
-            return attributes
-        }
+    public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
+        return true
     }
     
     public override func layoutAttributesForElements(in rect: CGRect) -> [UICollectionViewLayoutAttributes]? {
-        return attributesList
+        guard let collectionView = collectionView,
+              let layoutAttributesForElements = super.layoutAttributesForElements(in: rect)
+        else {
+            return nil
+        }
         
-    }
-    
-    public override func layoutAttributesForItem(at indexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        return attributesList[indexPath.row]
+        var updatedLayoutAttributesForElements: [UICollectionViewLayoutAttributes] = []
+        let offset = (collectionView.bounds.width - (layoutAttributesForItem(at: IndexPath(item: 0, section: 0))?.bounds.width ?? 0)) / 2
+        layoutAttributesForElements.forEach({ layoutAttributes in
+            guard let updatedLayoutAttributes = layoutAttributes.copy() as? UICollectionViewLayoutAttributes
+            else {
+                return
+            }
+            
+            let convertedFrame = collectionView.convert(updatedLayoutAttributes.frame, to: collectionView.superview ?? collectionView)
+            
+            let multiplier: CGFloat = 1.5
+            let distance = convertedFrame.origin.x + convertedFrame.size.width / 4
+            
+            let scale = (updatedLayoutAttributes.bounds.height - abs(distance) * multiplier) / updatedLayoutAttributes.bounds.height
+            var resolvedOffset = offset
+            
+            if distance > 0 {
+                resolvedOffset -= (updatedLayoutAttributes.bounds.width - scale * updatedLayoutAttributes.bounds.width) / 2
+            } else if distance < 0 {
+                resolvedOffset += (updatedLayoutAttributes.bounds.width - scale * updatedLayoutAttributes.bounds.width) / 2
+            }
+            
+            var transfrom: CGAffineTransform = .identity
+            transfrom = transfrom.translatedBy(x: resolvedOffset, y: 0)
+            transfrom = transfrom.scaledBy(x: scale, y: scale)
+            
+            updatedLayoutAttributes.transform = transfrom
+            updatedLayoutAttributes.alpha = max(min(scale, 1), 0)
+            updatedLayoutAttributesForElements.append(updatedLayoutAttributes)
+        })
         
-    }
-  
-    public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
-        return true
-        
+        return updatedLayoutAttributesForElements
     }
   
     public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
+        return CGPoint(x: offsetPathFor(proposedOffset: proposedContentOffset.x, velocity: velocity), y: proposedContentOffset.y)
+    }
+    
+    private func offsetPathFor(proposedOffset: CGFloat, velocity: CGPoint) -> CGFloat {
         guard let collectionView = collectionView
         else {
-            return proposedContentOffset
+            return proposedOffset
         }
         
-        var finalContentOffset = proposedContentOffset
-        let factor = -angleAtExtreme / (collectionViewContentSize.width - collectionView.bounds.width)
-        let proposedAngle = proposedContentOffset.x * factor
-        let ratio = proposedAngle / anglePerItem
-        var multiplier: CGFloat
+        let delegate = collectionView.delegate as? UICollectionViewDelegateFlowLayout
+        var offset: CGFloat = .zero
         
-        if (velocity.x > 0) {
-            multiplier = ceil(ratio)
-        } else if (velocity.x < 0) {
-            multiplier = floor(ratio)
-        } else {
-            multiplier = round(ratio)
+        let numberOfSections = collectionView.numberOfSections
+        for i in 0..<numberOfSections {
+            let numberOfItems = collectionView.numberOfItems(inSection: i)
+            for k in 0..<numberOfItems {
+                let width = (delegate?.collectionView?(collectionView, layout: self, sizeForItemAt: IndexPath(item: k, section: i)).width ?? itemSize.width)
+                var spacing: CGFloat = 0
+                if k < numberOfItems - 1 {
+                    spacing = delegate?.collectionView?(collectionView, layout: self, minimumLineSpacingForSectionAt: i) ?? minimumLineSpacing
+                }
+                
+                if offset + width > proposedOffset {
+                    if velocity.x > 0 || offset + width / 2 < proposedOffset {
+                        return offset + width + spacing
+                    }
+                    return offset
+                }
+                
+                offset += (width + spacing)
+            }
         }
         
-        finalContentOffset.x = multiplier * anglePerItem / factor
-        return finalContentOffset
-  }
+        return proposedOffset
+    }
+    
+    public func offsetForItem(at indexPath: IndexPath) -> CGFloat {
+        guard let collectionView = collectionView
+        else {
+            return .zero
+        }
+        
+        let delegate = collectionView.delegate as? UICollectionViewDelegateFlowLayout
+        var offset: CGFloat = .zero
+        
+        for i in 0...indexPath.section {
+            let numberOfItems = collectionView.numberOfItems(inSection: i)
+            if indexPath.item == 0 {
+                continue
+            } else {
+                for k in 1...indexPath.item {
+                    let size = delegate?.collectionView?(collectionView, layout: self, sizeForItemAt: IndexPath(item: k, section: i)) ?? itemSize
+                    offset += size.width
+                    
+                    if k < numberOfItems - 1 {
+                        offset += delegate?.collectionView?(collectionView, layout: self, minimumLineSpacingForSectionAt: i) ?? minimumLineSpacing
+                    }
+                }
+            }
+        }
+        
+        return offset
+    }
 }
