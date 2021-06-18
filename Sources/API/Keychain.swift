@@ -34,19 +34,19 @@ public final class Keychain {
         return keychain[data: key.rawValue]
     }
     
-    public func set(_ value: Data?, for key: String) {
+    public func set(_ value: Data?, for key: Key) {
         if let value = value {
-            try? keychain.set(value, key: key)
+            try? keychain.set(value, key: key.rawValue)
         } else {
-            keychain[key] = nil
+            keychain[key.rawValue] = nil
         }
     }
     
-    public func set(_ value: String?, for key: String) {
+    public func set(_ value: String?, for key: Key) {
         if let value = value {
-            try? keychain.set(value, key: key)
+            try? keychain.set(value, key: key.rawValue)
         } else {
-            keychain[key] = nil
+            keychain[key.rawValue] = nil
         }
     }
 }
