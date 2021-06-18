@@ -2,6 +2,7 @@
 //  Created by Anton Spivak.
 //  
 
+#if !os(macOS)
 import UIKit
 
 fileprivate let map : [String : UIDevice.Model] = [
@@ -297,3 +298,4 @@ public extension UIDevice {
         return model
     }
 }
+#endif
