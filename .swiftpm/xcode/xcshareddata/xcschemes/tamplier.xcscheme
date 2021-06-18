@@ -53,6 +53,10 @@
       <CommandLineArguments>
          <CommandLineArgument
             argument = "generate --auth --name Voicee --identifier org.sflabs.voicee --output ~/Developer/voicee-ios"
+            isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "api --url &apos;https://sflabs_system_account:7Dnq9cgStvj7M1v8SvOaZZ0O@t.face.cat/system/openapi&apos; --output ~/Desktop"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
