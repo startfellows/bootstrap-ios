@@ -13,4 +13,13 @@ extension Array {
             index += 1
         })
     }
+    
+    public func mapIndex<T>(_ transfrom: (Element, Int) throws -> T) rethrows -> [T] {
+        var index = 0
+        return try map({ element in
+            let value = try transfrom(element, index)
+            index += 1
+            return value
+        })
+    }
 }
