@@ -11,6 +11,7 @@ extension URLSession.DataTaskPublisher {
         map({ value in
             if let response = value.response as? HTTPURLResponse, configuration.printable == .verbose {
                 Swift.print("Did receive response: \(response)")
+                Swift.print("\(String(data: value.data, encoding: .utf8) ?? "Empty response")")
             }
             
             guard Swift.type(of: type.self) == Empty.Type.self,
