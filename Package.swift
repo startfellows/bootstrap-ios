@@ -22,7 +22,8 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "0.4.3")),
         .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", .upToNextMajor(from: "4.2.2")),
-        .package(url: "https://github.com/onevcat/Rainbow", .upToNextMajor(from: "4.0.0"))
+        .package(url: "https://github.com/onevcat/Rainbow", .upToNextMajor(from: "4.0.0")),
+        .package(url: "https://github.com/jpsim/Yams", .upToNextMajor(from: "4.0.6"))
     ],
     targets: [
         .target(
@@ -87,6 +88,7 @@ let package = Package(
             name: "Tamplier",
             dependencies: [
                 "Rainbow",
+                "Yams",
                 .product(name: "ArgumentParser", package: "swift-argument-parser")
             ],
             path: "Sources/CLI",
