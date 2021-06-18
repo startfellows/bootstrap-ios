@@ -56,7 +56,7 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "api --url &apos;https://sflabs_system_account:7Dnq9cgStvj7M1v8SvOaZZ0O@t.face.cat/system/openapi&apos; --output ~/Desktop"
+            argument = "api --path &apos;https://sflabs_system_account:7Dnq9cgStvj7M1v8SvOaZZ0O@t.face.cat/system/openapi&apos; --output ~/Desktop"
             isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
