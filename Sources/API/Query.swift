@@ -9,11 +9,14 @@ public enum QueryType: String {
     case post = "POST"
     case get = "GET"
     case put = "PUT"
+    case delete = "DELETE"
 }
 
-public protocol Query: Codable {
+public protocol Query {
     
     associatedtype R: Model
+    
+    var body: Codable { get }
     
     var type: QueryType { get }
     var path: String { get }
@@ -24,4 +27,16 @@ public protocol Query: Codable {
 public extension Query {
     
     var secure: Bool { true }
+    var body: Codable { Empty() }
+}
+
+public struct QueryParameter: CustomStringConvertible {
+    
+    public var description: String { "\(value ?? "")" }
+    
+    let value: Any?
+    
+    public init(_ value: Any?) {
+        self.value = value
+    }
 }

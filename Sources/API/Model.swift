@@ -4,7 +4,7 @@
 
 import Foundation
 
-public protocol Model: Decodable {
+public protocol Model: Codable {
     
 }
 
@@ -15,5 +15,5 @@ public struct Empty: Model, CustomStringConvertible {
     internal init() {}
 }
 
-extension Dictionary: Model where Key: Decodable, Value: Decodable {}
-extension Array: Model where Element: Decodable {}
+extension Dictionary: Model where Key: Codable, Value: Codable {}
+extension Array: Model where Element: Codable {}

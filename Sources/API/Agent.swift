@@ -45,36 +45,22 @@ public class Agent {
     
     public init(configuration: Configuration) {
         self.configuration = configuration
-        self.keychain = Keychain(serviceName: configuration.keychainServiceName, accessGroup: configuration.keychainServiceName)
+        self.keychain = Keychain(serviceName: configuration.keychainServiceName, accessGroup: nil)
     }
     
     public func perform<Q: Query>(_ query: Q) -> AnyPublisher<Q.R, Error> {
-        guard var components = URLComponents(string: configuration.baseURL.appendingPathComponent(query.path).absoluteString),
-              let data = try? encoder.encode(query)
+        guard let absolute = configuration.baseURL.appendingPathComponent(query.path).absoluteString.removingPercentEncoding,
+              let url = URL(string: absolute)
         else {
-            fatalError("Can't seriliaze ")
+            fatalError("Can't create url with path: \(query.path)")
         }
-        
-        if query.type == .get, data.count == 2 {
-            guard let json = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) as? [String : String]
-            else {
-                fatalError("Query data should be string's")
-            }
-            components.queryItems = json.map({ URLQueryItem(name: $0.key, value: $0.value) })
-        }
-        
-        guard let url = components.url
-        else {
-            fatalError("Can't create url")
-        }
-    
+
         var request = URLRequest(url: url)
         request.httpMethod = query.type.rawValue
         request.allHTTPHeaderFields = query.headers.merging(with: configuration.headers)
         
-        if query.type != .get, data.count > 2 {
-            request.httpBody = data
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if query.type != .get, let httpBody = try? query.body.toJSONData() {
+            request.httpBody = httpBody
         }
         
         let session = URLSession.shared
@@ -125,4 +111,9 @@ public extension Query {
             completion(.success(result))
         }).store(in: &agent.store.cancellable)
     }
+}
+
+fileprivate extension Encodable {
+    
+    func toJSONData() throws -> Data { try JSONEncoder().encode(self) }
 }

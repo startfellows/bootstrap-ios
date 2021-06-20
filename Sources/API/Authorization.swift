@@ -19,13 +19,13 @@ extension Authorization where Self: NSSecureCoding {
     }
 }
 
-public class BearerAuthorization: NSSecureCoding, Authorization {
+public class BearerAuthorization: NSObject, NSSecureCoding, Authorization {
     
     public static var supportsSecureCoding: Bool { true }
     
-    let token: String
+    public let token: String
     
-    init(token: String) {
+    public init(token: String) {
         self.token = token
     }
     

@@ -13,4 +13,9 @@ public class API {
         formatter.calendar = Calendar(identifier: .gregorian)
         return formatter
     }()
+    
+    public struct GET {}
+    public struct POST {}
+    public struct PUT {}
+    public struct DELETE {}
 }
