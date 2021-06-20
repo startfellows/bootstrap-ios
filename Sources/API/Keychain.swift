@@ -9,6 +9,8 @@ public final class Keychain {
     
     public struct Key: RawRepresentable {
         
+        static let security = Key(rawValue: "default_api_security")!
+        
         public var rawValue: String
         
         public init?(rawValue: String) {
