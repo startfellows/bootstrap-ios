@@ -1,11 +1,6 @@
 SF Labs iOS Bootstrap Library
 =====================
 
-Этот репозиторий содержит в себе **Bootstrap iOS Library** и генератор проектов на основе данной бибилиотеки - **tamplier**.
-
-
-Bootstrap
------
 
 - Содержит абстрактный код, который можно переиспользовать в любом проекте SF Labs
 - Состоит из нескольких основных частей:
@@ -17,16 +12,10 @@ Bootstrap
 - Другие подпроекты *in progress*..
 
 
-tamplier
------
-
-Генерирует простые проекты на основе шаблонов **.templates**
-
-
 Использование
 -----
 
-Установка **tamplier**
+Установка **[tamplier](https://github.com/sflabsorg/tamplier)**
 
     brew tap sflabsorg/sf
     brew install tamplier
@@ -34,6 +23,10 @@ tamplier
 Генерация проекта по шаблону авторизации
 
     tamplier generate --auth --output ~/Desktop --name AwesomeProject
+    
+Генерация Swift Package с Swagger API по YML спецификации
+
+    tamplier api --path {path_to_yml_spec_file} --output ~/Desktop/AwesomeProject
 
 Установка **Bootstrap** в обычном проекте (в сгенерированном проекте библиотека подключена по умолчанию)
 
@@ -71,20 +64,3 @@ tamplier
     )
 
     main(bootstrap)
-
-
-Разработка
------
-
-- Для разработки **шаблонов** и/или внесения изменений в **Boostrap** следует использовать ```Package.xcworkspace```
-- Для создания шаблонов следует скопировать Authentication и изменить название проекта на свой
-- Если хочется сделать начисто - структура шаблона должна повторять **Authentication** для корректной генерации проектов, а именно:
-  - Название проекта = название шаблона
-  - Корневая директория проекта = 'Application'
-  - Инициализация Bootstrap в **main.swift**
-  - Info.plist файл должен находиться в Supporting директории
-  - В директории Supporting/Configuration должны находиться xcconfig и entitlements файлы
-  - Все настройки проекта хранятся в xcconfig, без использования Xcode
-- Следует не забыть добавить свой шаблон в **<bootstrap-path>/Sources/Tamplier/main.swift**
-- После успешного создания шаблона его генерацию следует проврить локально, с помощью схемы **tamplier**
-
