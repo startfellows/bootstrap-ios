@@ -10,7 +10,6 @@ let package = Package(
         .iOS(.v13)
     ],
     products: [
-        .executable(name: "tamplier", targets: ["Tamplier"]),
         .library(name: "Bootstrap", targets: ["Bootstrap"]),
         .library(name: "BootstrapUtilites", targets: ["BootstrapUtilites"]),
         .library(name: "BootstrapUI", targets: ["BootstrapUI"]),
@@ -20,12 +19,7 @@ let package = Package(
         .library(name: "BootstrapModules", targets: ["BootstrapModules"])
     ],
     dependencies: [
-        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMajor(from: "0.4.3")),
-        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", .upToNextMajor(from: "4.2.2")),
-        .package(url: "https://github.com/onevcat/Rainbow", .upToNextMajor(from: "4.0.0")),
-        .package(url: "https://github.com/jpsim/Yams", .upToNextMajor(from: "4.0.6")),
-        .package(url: "https://github.com/stencilproject/Stencil", .upToNextMajor(from: "0.14.1")),
-        .package(url: "https://github.com/kylef/PathKit.git", from: "1.0.0")
+        .package(url: "https://github.com/kishikawakatsumi/KeychainAccess", .upToNextMajor(from: "4.2.2"))
     ],
     targets: [
         .target(
@@ -82,21 +76,6 @@ let package = Package(
                 "BootstrapUtilites"
             ],
             path: "Sources/Bootstrap",
-            swiftSettings: [
-                .define("DEBUG", .when(configuration: .debug))
-            ]
-        ),
-        .target(
-            name: "Tamplier",
-            dependencies: [
-                "Rainbow",
-                "Yams",
-                "Stencil",
-                "PathKit",
-                "BootstrapUtilites",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
-            ],
-            path: "Sources/CLI",
             swiftSettings: [
                 .define("DEBUG", .when(configuration: .debug))
             ]
