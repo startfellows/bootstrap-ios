@@ -6,6 +6,7 @@ import Foundation
 import AVFoundation
 import Accelerate
 import CoreAudio
+import Speech
 
 public class Microphone {
     
@@ -20,8 +21,14 @@ public class Microphone {
     private var audioFile: AVAudioFile? = nil
     private let processor: Processor = Processor()
     private var start: Double?
+    
     private let levels: Int = 5
     private let fftSetup = vDSP_DFT_zop_CreateSetup(nil, 1024, vDSP_DFT_Direction.FORWARD)!
+    
+    private let speechRecognizer: SFSpeechRecognizer? = SFSpeechRecognizer(locale: Locale(identifier: "ru-RU"))
+    private var recognitionRequest: SFSpeechAudioBufferRecognitionRequest?
+    private var recognitionTask: Any?
+    private var recognizedText: String?
     
     public var effect: Effect? = nil
     public var meters: [Meter] = []
@@ -29,15 +36,26 @@ public class Microphone {
     public init() {}
     
     public func record(into _fileURL: URL) throws {
+        recognizedText = nil
+        
         let fileURL = _fileURL.appendingPathExtension(UUID().uuidString)
         try? FileManager.default.removeItem(at: URL(fileURLWithPath: _fileURL.absoluteString))
 
         let inputNode = audioEngine.inputNode
         inputNode.removeTap(onBus: 0)
+        
+        recognitionRequest = SFSpeechAudioBufferRecognitionRequest()
+        recognitionRequest?.shouldReportPartialResults = true
+        if let request = recognitionRequest {
+            recognitionTask = speechRecognizer?.recognitionTask(with:request, resultHandler: { [weak self] (value, error) in
+                self?.recognizedText = value?.bestTranscription.formattedString
+            })
+        }
 
         let recordingFormat = inputNode.outputFormat(forBus: 0)
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: recordingFormat, block: { [weak self] (buffer: AVAudioPCMBuffer, time: AVAudioTime) in
             self?.processAudioBuffer(buffer, time)
+            self?.recognitionRequest?.append(buffer)
         })
 
         let mainMixerNode = audioEngine.mainMixerNode
@@ -56,7 +74,10 @@ public class Microphone {
     }
     
     @discardableResult
-    public func stop(process: Bool) throws -> URL {
+    public func stop(process: Bool) throws -> (URL, String?) {
+        recognitionTask = nil
+        recognitionRequest = nil
+        
         let inputNode = audioEngine.inputNode
         inputNode.removeTap(onBus: 0)
 
@@ -76,7 +97,7 @@ public class Microphone {
         start = nil
         try? FileManager.default.removeItem(at: URL(fileURLWithPath: tmpURL.absoluteString))
 
-        return outputURL
+        return (outputURL, recognizedText)
     }
     
     private func processAudioBuffer(_ buffer: AVAudioPCMBuffer, _ time: AVAudioTime) {
