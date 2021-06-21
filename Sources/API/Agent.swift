@@ -63,20 +63,20 @@ public class Agent {
             request.httpBody = httpBody
         }
         
-        let session = URLSession.shared
-        let configuration = configuration
-        let share = session.dataTaskPublisher(for: request)
-            .emptyfy(to: Empty.self, configuration: configuration)
-            .map(\.data)
-            .decode(type: Q.R.self, decoder: decoder)
-            .share()
-        
         if query.secure,
            let data = keychain.data(for: .security),
            let value = try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Authorization
         {
             value.fill(&request)
         }
+        
+        let session = URLSession.shared
+        let configuration = configuration
+        let share = session.dataTaskPublisher(for: request)
+            .middleware(to: Empty.self, configuration: configuration)
+            .map(\.data)
+            .decode(type: Q.R.self, decoder: decoder)
+            .share()
         
         share.sink(receiveCompletion: { receive in
             switch receive {
