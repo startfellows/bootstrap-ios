@@ -17,6 +17,15 @@ extension Authorization where Self: NSSecureCoding {
         let data = try NSKeyedArchiver.archivedData(withRootObject: self, requiringSecureCoding: true)
         agent.keychain.set(data, for: .security)
     }
+    
+    public static func current(assotiatedWith agent: Agent) -> Self? {
+        let data = agent.keychain.data(for: .security)
+        guard let data = data
+        else {
+            return nil
+        }
+        return try? NSKeyedUnarchiver.unarchiveTopLevelObjectWithData(data) as? Self
+    }
 }
 
 public class BearerAuthorization: NSObject, NSSecureCoding, Authorization {
