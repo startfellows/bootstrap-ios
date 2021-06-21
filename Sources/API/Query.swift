@@ -30,13 +30,18 @@ public extension Query {
     var body: Codable { Empty() }
 }
 
-public struct QueryParameter: CustomStringConvertible {
+public struct QueryParameters: CustomStringConvertible {
     
-    public var description: String { "\(value ?? "")" }
+    public var description: String
     
-    let value: Any?
-    
-    public init(_ value: Any?) {
-        self.value = value
+    public init(_ values: [(String, Any?)]) {
+        let query = values.compactMap({ element -> String? in
+            guard let value = element.1
+            else {
+                return nil
+            }
+            return "\(element.0)=\(value)"
+        }).joined(separator: "&")
+        description = query.count == 0 ? "" : "?\(query)"
     }
 }
