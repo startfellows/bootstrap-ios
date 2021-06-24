@@ -59,7 +59,7 @@ public class Agent {
         request.httpMethod = query.type.rawValue
         request.allHTTPHeaderFields = query.headers.merging(with: configuration.headers)
         
-        if query.type != .get, let httpBody = try? query.body.toJSONData() {
+        if query.type != .get, let httpBody = try? encoder.encode(query.body) {
             request.httpBody = httpBody
         }
         
@@ -111,9 +111,4 @@ public extension Query {
             completion(.success(result))
         }).store(in: &agent.store.cancellable)
     }
-}
-
-fileprivate extension Encodable {
-    
-    func toJSONData() throws -> Data { try JSONEncoder().encode(self) }
 }

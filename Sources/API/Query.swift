@@ -15,8 +15,9 @@ public enum QueryType: String {
 public protocol Query {
     
     associatedtype R: Model
+    associatedtype B: Codable
     
-    var body: Codable { get }
+    var body: B { get }
     
     var type: QueryType { get }
     var path: String { get }
@@ -27,7 +28,7 @@ public protocol Query {
 public extension Query {
     
     var secure: Bool { true }
-    var body: Codable { Empty() }
+    var body: Empty { Empty() }
 }
 
 public struct QueryParameters: CustomStringConvertible {
