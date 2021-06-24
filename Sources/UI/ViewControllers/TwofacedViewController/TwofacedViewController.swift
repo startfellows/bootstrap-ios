@@ -9,7 +9,7 @@ public protocol TwofacedViewControllerDelegate: NSObjectProtocol {
     func twofacedViewController(_ viewController: TwofacedViewController, didUpdateViewPresentation presentation: TwofacedViewPresentation)
 }
 
-public enum TwofacedViewPresentation {
+public enum TwofacedViewPresentation: Equatable {
 
     case top
     case bottom
