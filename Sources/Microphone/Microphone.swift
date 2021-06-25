@@ -8,12 +8,14 @@ import Accelerate
 import CoreAudio
 import Speech
 
-public class Microphone {
+public class Recorder {
     
     public struct Response {
         
         public let fileURL: URL
         public let text: String?
+        public let meterings: [Metering]
+        public let duration: TimeInterval
     }
     
     public private(set) var session: Session? = nil
@@ -63,12 +65,16 @@ public class Microphone {
 
         let temporaryURL = session.file.url
         let outputURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("record.\(session.format.rawValue)")
+        let asset = AVURLAsset(url: temporaryURL)
+        
+        if fileManager.fileExists(atPath: outputURL.relativePath) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
         
         switch session.format {
         case .caf:
             try fileManager.moveItem(at: temporaryURL, to: outputURL)
         case .m4a:
-            let asset = AVURLAsset(url: temporaryURL)
             let exporter = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetAppleM4A)
             exporter?.outputFileType = .m4a
             exporter?.outputURL = outputURL
@@ -89,6 +95,6 @@ public class Microphone {
             try FileManager.default.removeItem(at: temporaryURL)
         }
         
-        return Response(fileURL: outputURL, text: session.text)
+        return Response(fileURL: outputURL, text: session.text, meterings: session.meterings, duration: asset.duration.seconds)
     }
 }

@@ -43,9 +43,6 @@ public class Session {
     func accept(_ buffer: AVAudioPCMBuffer, with time: AVAudioTime) {
         if let meters = processor.process(buffer, time) {
             DispatchQueue.main.async(execute: {
-                if self.meterings.count > 42 {
-                    self.meterings.removeFirst()
-                }
                 self.meterings.append(meters)
             })
         }
