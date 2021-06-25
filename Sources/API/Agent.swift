@@ -59,8 +59,14 @@ public class Agent {
         request.httpMethod = query.type.rawValue
         request.allHTTPHeaderFields = query.headers.merging(with: configuration.headers)
         
-        if query.type != .get, let httpBody = try? encoder.encode(query.body) {
+        if query.headers["Content-Type"] == "multipart/form-data" {
+            assert(query.type != .get, "Query with Content-Type multipart/form-data can't be GET")
+            
+            let boundary = "Boundary-\(UUID().uuidString)"
+            let httpBody = try? query.formData(withBoundary: boundary)
+            
             request.httpBody = httpBody
+            request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
         }
         
         if query.secure,
