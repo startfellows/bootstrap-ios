@@ -62,7 +62,7 @@ public class Microphone {
         let fileManager = FileManager.default
 
         let temporaryURL = session.file.url
-        let outputURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("\(UUID().uuidString).\(session.format.rawValue)")
+        let outputURL = fileManager.urls(for: .documentDirectory, in: .userDomainMask)[0].appendingPathComponent("record.\(session.format.rawValue)")
         
         switch session.format {
         case .caf:

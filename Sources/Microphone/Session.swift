@@ -23,6 +23,7 @@ public class Session {
     public var text: String = ""
     
     init(engine: AVAudioEngine, fileURL: URL, format: AVAudioFormat, type: Format) throws {
+        self.format = type
         self.engine = engine
         self.file = try AVAudioFile(forWriting: fileURL, settings: format.settings, commonFormat: .pcmFormatFloat32, interleaved: false)
         self.time = -1
