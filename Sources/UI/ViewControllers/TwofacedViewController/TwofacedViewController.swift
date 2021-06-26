@@ -42,6 +42,11 @@ open class TwofacedViewController: UIViewController {
     public let topViewController: UIViewController
     public let bottomViewController: UIViewController
     
+    public var viewControllersDistanceBetween: CGFloat {
+        set { twofacedView.distance = newValue }
+        get { twofacedView.distance }
+    }
+    
     public var viewPresentation: TwofacedViewPresentation {
         get { TwofacedViewPresentation.with(twofacedView.presentationState) }
         set { twofacedView.set(presentationState: newValue.state(), animated: true) }
