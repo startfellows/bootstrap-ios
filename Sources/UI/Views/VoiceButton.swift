@@ -36,9 +36,7 @@ public class VoiceButton: UIControl {
     public enum VoiceState {
         
         case `default`
-        case playing
-        case paused
-        
+        case path(_ path: UIBezierPath)
         case leveling(_ l1: CGFloat, _ l2: CGFloat, _ l3: CGFloat, _ l4: CGFloat, _ l5: CGFloat, _ db1: CGFloat, _ db2: CGFloat)
     }
     
@@ -51,7 +49,7 @@ public class VoiceButton: UIControl {
     private let backgroundLayer2: CAShapeLayer = CAShapeLayer()
     
     private let foregroundLayer: CALayer = CALayer()
-    private var morphingLayer: CAShapeLayer { levelingLayers[2] }
+    private var morphingLayer: CAShapeLayer { levelingLayers[1] }
     
     public override var isHighlighted: Bool {
         get { super.isHighlighted }
@@ -95,8 +93,6 @@ public class VoiceButton: UIControl {
     }
     
     private let levelingLayers: [CAShapeLayer] = [
-        CAShapeLayer(),
-        CAShapeLayer(),
         CAShapeLayer(),
         CAShapeLayer(),
         CAShapeLayer()
@@ -332,25 +328,18 @@ public class VoiceButton: UIControl {
     }
 }
 
-extension VoiceButton.VoiceState: RawRepresentable {
+extension VoiceButton.VoiceState: Equatable {
     
-    public typealias RawValue = CGFloat
-    
-    public init?(rawValue: CGFloat) {
-        switch rawValue {
-        case 0: self = .default
-        case 1: self = .playing
-        case 2: self = .paused
-        default: fatalError("")
-        }
-    }
-    
-    public var rawValue: CGFloat {
-        switch self {
-        case .default: return -1
-        case .playing: return -2
-        case .paused: return -3
-        case .leveling(let l1, let l2, let l3, let l4, let l5, let db1, let db2): return CGFloat([l1, l2, l3, l4, l5, db1, db2].hashValue)
+    public static func == (lhs: Self, rhs: Self) -> Bool {
+        switch (lhs, rhs) {
+        case (.default, .default):
+            return true
+        case (.path(let lhs), .path(let rhs)):
+            return lhs == rhs
+        case (.leveling(let ll1, let ll2, let ll3, let ll4, let ll5, let ldb1, let ldb2), .leveling(let rl1, let rl2, let rl3, let rl4, let rl5, let rdb1, let rdb2)):
+            return ll1 == rl1 && ll2 == rl2 && ll3 == rl3 && ll4 == rl4 && ll5 == rl5 && ldb1 == rdb1 && ldb2 == rdb2
+        default:
+            return false
         }
     }
 }
@@ -371,13 +360,13 @@ extension VoiceButton.VoiceState {
     }
     
     func levelingLayerParameters(in superlayer: CALayer, to: VoiceButton.VoiceState) -> [LevelingLayerParamaters] {
-        let count = 5
+        let count = 3
+        let minimumWidth: CGFloat = 5.5
         
-        let minimumWidth = superlayer.bounds.width / 9
         let minimumHeight = minimumWidth
         let maximumHeight = superlayer.bounds.height
         
-        let side = superlayer.bounds.width / 5
+        let side = superlayer.bounds.width / CGFloat(count)
         
         var levelingLayerParamaters: [LevelingLayerParamaters] = []
         for i in 0..<count {
@@ -386,7 +375,7 @@ extension VoiceButton.VoiceState {
                 switch to {
                 case .default, .leveling(_, _, _, _, _, _, _):
                     levelingLayerParamaters.append(.none)
-                case .playing, .paused:
+                case .path(_):
                     if i == Int((CGFloat(count) / 2)) {
                         let paramaters = LevelingLayerParamaters(
                             frame: superlayer.bounds,
@@ -404,7 +393,7 @@ extension VoiceButton.VoiceState {
                         levelingLayerParamaters.append(paramaters)
                     }
                 }
-            case .paused, .playing:
+            case .path(_):
                 if i == Int((CGFloat(count) / 2)) {
                     let paramaters = LevelingLayerParamaters(
                         frame: superlayer.bounds,
@@ -428,13 +417,14 @@ extension VoiceButton.VoiceState {
     }
     
     func levelingLayerParamaters(in superlayer: CALayer) -> [LevelingLayerParamaters] {
-        let count = 5
-        let width = superlayer.bounds.width / 9
+        let count = 3
+        let width: CGFloat = 5.5
+        let offset: CGFloat = (superlayer.bounds.width - width * CGFloat(count * 2 - 1)) / 2
         
         let minimumHeight = width
         let maximumHeight = superlayer.bounds.height
         
-        var levelingHeights = [minimumHeight, maximumHeight / 2, maximumHeight, maximumHeight / 2, minimumHeight]
+        var levelingHeights = [maximumHeight / 2, maximumHeight, maximumHeight / 2]
         switch self {
         case .leveling(let l1, let l2, let l3, let l4, let l5, _, _):
             levelingHeights = [step(l1), step(l2), step(l3), step(l4), step(l5)].map({ max($0 * maximumHeight, minimumHeight) })
@@ -446,7 +436,7 @@ extension VoiceButton.VoiceState {
             switch self {
             case .default, .leveling(_, _, _, _, _, _, _):
                 let path = p_rectangle(
-                    in: CGRect(x: CGFloat(i) * width * 2, y: (maximumHeight - levelingHeights[i]) / 2, width: width, height: levelingHeights[i]),
+                    in: CGRect(x: offset + CGFloat(i) * width * 2, y: (maximumHeight - levelingHeights[i]) / 2, width: width, height: levelingHeights[i]),
                     cornerRadii: CGSize(width: width / 2, height: width / 2)
                 )
                 let paramaters = LevelingLayerParamaters(
@@ -454,34 +444,26 @@ extension VoiceButton.VoiceState {
                     path: path.cgPath
                 )
                 levelingLayerParamaters.append(paramaters)
-            case .playing, .paused:
+            case .path(let path):
                 if i == Int((CGFloat(count) / 2)) {
-                    let side = min(superlayer.bounds.width, superlayer.bounds.height)
-                    let frame = CGRect(
-                        x: (superlayer.bounds.width - side) / 2,
-                        y: (superlayer.bounds.height - side) / 2,
-                        width: side,
-                        height: side
+                    
+                    let bpath = path
+                    let bounds = path.bounds
+                    var transform: CGAffineTransform = .identity
+                    
+                    transform = transform.translatedBy(
+                        x: (superlayer.bounds.width - bounds.width) / 2,
+                        y: (superlayer.bounds.height - bounds.height) / 2
                     )
                     
-                    let path = { () -> CGPath in
-                        switch self {
-                        case .paused: return p_triangle(in: frame, cornerRadius: 14).cgPath
-                        case .playing: return p_rectangle(in: frame, cornerRadii: CGSize(width: side / 3, height: side / 3)).cgPath
-                        default: fatalError()
-                        }
-                    }
+                    bpath.apply(transform)
                     
-                    let paramaters = LevelingLayerParamaters(
-                        frame: superlayer.bounds,
-                        path: path()
-                    )
-                    
+                    let paramaters = LevelingLayerParamaters(frame: superlayer.bounds, path: bpath.cgPath)
                     levelingLayerParamaters.append(paramaters)
                 } else {
                     var paramaters = LevelingLayerParamaters(
                         frame: superlayer.bounds,
-                        path: p_oval(in: CGRect(x: CGFloat(i) * width * 2, y: (maximumHeight - minimumHeight) / 2, width: width, height: minimumHeight)).cgPath
+                        path: p_oval(in: CGRect(x: offset + CGFloat(i) * width * 2, y: (maximumHeight - minimumHeight) / 2, width: width, height: minimumHeight)).cgPath
                     )
                     paramaters.opacity = 0
                     
