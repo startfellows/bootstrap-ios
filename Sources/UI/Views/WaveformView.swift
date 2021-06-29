@@ -32,12 +32,13 @@ internal class WaveformItemCell: UICollectionViewCell, UICollectionViewIdentifia
     override func layoutSubviews() {
         super.layoutSubviews()
         
+        let multiplier = multiplier
         if bounds.height > bounds.width {
-            let height = bounds.height * CGFloat(multiplier)
+            let height = max(min(bounds.height * CGFloat(multiplier), bounds.height), bounds.width)
             itemView.frame = CGRect(x: 0, y: (bounds.height - height) / 2, width: bounds.width, height: height)
             itemView.layer.cornerRadius = bounds.width / 2
         } else {
-            let width = bounds.width * CGFloat(multiplier)
+            let width = max(min(bounds.width * CGFloat(multiplier), bounds.width), bounds.height)
             itemView.frame = CGRect(x: (bounds.width - width) / 2, y: 0, width: width, height: bounds.height)
             itemView.layer.cornerRadius = bounds.height / 2
         }
