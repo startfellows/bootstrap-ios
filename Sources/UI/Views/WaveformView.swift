@@ -4,80 +4,177 @@
 
 import UIKit
 
-internal class WaveformItemCell: UICollectionViewCell, UICollectionViewIdentifiableCell {
+public class WaveformLayer: CALayer {
     
-    static var nib: UINib? { nil }
+    @NSManaged var progress: CGFloat
+    @NSManaged var width: CGFloat
+    @NSManaged var values: [Double]
     
-    let itemView: UIView = UIView()
-    var multiplier: Double = 0 {
-        didSet {
-            setNeedsLayout()
-        }
-    }
+    @NSManaged var _backgroundColor: CGColor?
+    @NSManaged var _foregroundColor: CGColor?
     
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
+    private let _background: CALayer = CALayer()
+    private let _foreground: CAShapeLayer = CAShapeLayer()
+    private let _mask: CAShapeLayer = CAShapeLayer()
+    
+    override init() {
+        super.init()
         initialize()
     }
     
-    public required init?(coder: NSCoder) {
+    required init?(coder: NSCoder) {
         super.init(coder: coder)
         initialize()
     }
     
-    private func initialize() {
-        addSubview(itemView)
-    }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        
-        let multiplier = multiplier
-        if bounds.height > bounds.width {
-            let height = max(min(bounds.height * CGFloat(multiplier), bounds.height), bounds.width)
-            itemView.frame = CGRect(x: 0, y: (bounds.height - height) / 2, width: bounds.width, height: height)
-            itemView.layer.cornerRadius = bounds.width / 2
-        } else {
-            let width = max(min(bounds.width * CGFloat(multiplier), bounds.width), bounds.height)
-            itemView.frame = CGRect(x: (bounds.width - width) / 2, y: 0, width: width, height: bounds.height)
-            itemView.layer.cornerRadius = bounds.height / 2
+    override init(layer: Any) {
+        guard let layer = layer as? WaveformLayer
+        else {
+            fatalError("Can't initialize GradientLayer with \(layer)")
         }
         
-        itemView.layer.cornerCurve = .continuous
+        super.init(layer: layer)
+        
+        values = layer.values
+        progress = layer.progress
+        width = layer.width
+    }
+    
+    private func initialize() {
+        addSublayer(_background)
+        addSublayer(_foreground)
+    }
+    
+    private class func isAnimationKeyImplemented(_ key: String) -> Bool {
+        key == #keyPath(progress) || key == #keyPath(values) || key == #keyPath(width) || key == #keyPath(_backgroundColor) || key == #keyPath(_foregroundColor)
+    }
+    
+    public override class func needsDisplay(forKey key: String) -> Bool {
+        guard isAnimationKeyImplemented(key)
+        else {
+            return super.needsDisplay(forKey: key)
+        }
+        
+        return true
+    }
+    
+    public override func display() {
+        super.display()
+        display(from: presentation() ?? self)
+    }
+    
+    private func display(from layer: WaveformLayer) {
+        _background.frame = layer.bounds
+        _mask.frame = layer.bounds
+        
+        let horizontal = layer.bounds.width > layer.bounds.height
+        let side = horizontal ? layer.bounds.width : layer.bounds.height
+        let neededWidth = CGFloat(values.count) * (width * 2) - width
+        let availableCount = Int(floor(side / CGFloat(width) / 2)) - 1
+        
+        var values = values
+        if neededWidth > side {
+            values = values.shrinked(with: Double(side / neededWidth))
+        }
+        
+        if values.count < availableCount {
+            let append = [Double](repeating: 0.2, count: availableCount - values.count)
+            values.append(contentsOf: append)
+        }
+        
+        let path = UIBezierPath(waveform: values, in: layer.bounds)
+        _mask.path = path.cgPath
+        mask = nil
+        mask = _mask
+        
+        let rect = CGRect(
+            x: 0,//horizontal ? layer.bounds.width * progress : 0,
+            y: 0,//horizontal ? 0 : layer.bounds.height * progress,
+            width: horizontal ? layer.bounds.width * progress : layer.bounds.width,
+            height: horizontal ? layer.bounds.width : layer.bounds.height * progress
+        )
+        _foreground.path = UIBezierPath(rect: rect).cgPath
+        _foreground.fillColor = _foregroundColor
+        
+        _background.backgroundColor = _backgroundColor
+    }
+    
+    public override func action(forKey event: String) -> CAAction? {
+        guard Self.isAnimationKeyImplemented(event)
+        else {
+            return super.action(forKey: event)
+        }
+        
+        let action = _action({ animation in
+            animation?.keyPath = event
+            animation?.fromValue = presentation()?.value(forKeyPath: event) ?? value(forKeyPath: event)
+            animation?.toValue = nil
+        })
+        
+        return action
+    }
+    
+    private func _action(_ animation: ((_ animation: CABasicAnimation?) -> ())) -> CAAction? {
+        let system = action(forKey: #keyPath(backgroundColor))
+        let sel = NSSelectorFromString("pendingAnimation")
+        
+        if let expanded = system as? CABasicAnimation {
+            animation(expanded)
+        } else if let expanded = system as? NSObject, expanded.responds(to: sel) {
+            let value = expanded.value(forKeyPath: "_pendingAnimation")
+            animation(value as? CABasicAnimation)
+        }
+        
+        return system
     }
 }
 
 public class WaveformView: UIView {
     
-    private let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    private var collectionViewLayout: UICollectionViewFlowLayout { collectionView.collectionViewLayout as! UICollectionViewFlowLayout }
+    public override class var layerClass: AnyClass { WaveformLayer.self }
+    private var _layer: WaveformLayer { layer as! WaveformLayer }
     
-    public override var tintColor: UIColor! {
-        set {
-            super.tintColor = newValue
-            collectionView.reloadData()
-        }
+    ///
+    @objc public var waveform: [Double] {
+        set { _layer.values = newValue }
+        get { _layer.values }
+    }
+    
+    ///
+    @objc public var progress: Double {
+        set { _layer.progress = CGFloat(max(min(newValue, 1), 0)) }
+        get { Double(_layer.progress) }
+    }
+    
+    ///
+    @objc public var itemWidth: CGFloat {
+        set { _layer.width = newValue }
+        get { _layer.width }
+    }
+    
+    @IBInspectable
+    @objc public var waveformBackgroundColor: UIColor? {
+        set { _layer._backgroundColor = newValue?.cgColor }
         get {
-            super.tintColor
+            guard let color = _layer._backgroundColor
+            else {
+                return nil
+            }
+            
+            return UIColor(cgColor: color)
         }
     }
     
-    public var waveform: [Double] = [] {
-        didSet {
-            collectionView.reloadData()
-        }
-    }
-    
-    public var interitemSpacing: CGFloat = 4 {
-        didSet {
-            collectionViewLayout.minimumLineSpacing = interitemSpacing
-            collectionViewLayout.invalidateLayout()
-        }
-    }
-    
-    public var itemWidth: CGFloat = 4 {
-        didSet {
-            collectionViewLayout.invalidateLayout()
+    @IBInspectable
+    @objc public var waveformForegroundColor: UIColor? {
+        set { _layer._foregroundColor = newValue?.cgColor }
+        get {
+            guard let color = _layer._foregroundColor
+            else {
+                return nil
+            }
+            
+            return UIColor(cgColor: color)
         }
     }
     
@@ -92,74 +189,88 @@ public class WaveformView: UIView {
     }
     
     private func initialize() {
-        collectionView.isUserInteractionEnabled = false
-        collectionViewLayout.scrollDirection = .horizontal
-        collectionViewLayout.minimumInteritemSpacing = 0
-        
-        interitemSpacing = 4
+        progress = 0
         itemWidth = 4
         
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.backgroundColor = .clear
-        collectionView.register(WaveformItemCell.self)
-        collectionView.isScrollEnabled = false
-        collectionView.alwaysBounceVertical = false
-        collectionView.alwaysBounceHorizontal = false
-        collectionView.showsVerticalScrollIndicator = false
-        collectionView.showsHorizontalScrollIndicator = false
-        addSubview(collectionView)
+        waveformBackgroundColor = UIColor.white.withAlphaComponent(0.7)
+        waveformForegroundColor = UIColor.white
     }
+}
+
+extension UIBezierPath {
     
-    public override func layoutSubviews() {
-        super.layoutSubviews()
-        collectionView.frame = bounds
+    public convenience init(waveform: [Double], in rect: CGRect) {
+        self.init()
         
-        var scrollDirection: UICollectionView.ScrollDirection = .horizontal
-        if bounds.height > bounds.width {
-            scrollDirection = .vertical
+        let vertical = rect.width < rect.height
+        let side = (vertical ? rect.height : rect.width) / CGFloat(waveform.count) / 2
+        
+        if waveform.count <= 0 {
+            return
         }
         
-        if collectionViewLayout.scrollDirection != scrollDirection {
-            collectionViewLayout.scrollDirection = scrollDirection
-            collectionViewLayout.invalidateLayout()
-        }
-    }
-    
-    private func wave(for indexPath: IndexPath) -> Double {
-        guard indexPath.item < waveform.count - 1
-        else {
-            return 0.1
-        }
-        return waveform[indexPath.item]
-    }
-}
-
-extension WaveformView: UICollectionViewDataSource {
-    
-    public func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 10000
-    }
-    
-    public func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell: WaveformItemCell = collectionView.dequeueReusableCell(for: indexPath)
-        cell.itemView.backgroundColor = tintColor
-        cell.multiplier = wave(for: indexPath)
-        return cell
-    }
-}
-
-extension WaveformView: UICollectionViewDelegateFlowLayout {
-    
-    public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if bounds.height > bounds.width {
-            return CGSize(width: bounds.width, height: itemWidth)
-        } else {
-            return CGSize(width: itemWidth, height: bounds.height)
+        for i in 0..<waveform.count {
+            let sside = (vertical ? rect.width : rect.height)
+            let power = max(sside * CGFloat(waveform[i]), side)
+            
+            let frame = CGRect(
+                x: rect.origin.x + (vertical ? 0 : CGFloat(i) * side * 2) + (vertical ? (sside - power) / 2 : 0),
+                y: rect.origin.y + (vertical ? CGFloat(i) * side * 2 : 0) + (vertical ? 0 : (sside - power) / 2),
+                width: vertical ? power : side,
+                height: vertical ? side : power
+            )
+            
+            let subpath = UIBezierPath(
+                roundedRect: frame,
+                byRoundingCorners: .allCorners,
+                cornerRadii: CGSize(width: side / 2, height: side / 2)
+            )
+            
+            append(subpath)
         }
     }
 }
 
-extension WaveformView: UICollectionViewDelegate {
+extension Array where Element == Double {
     
+    func shrinked(with coefficient: Double) -> [Element] {
+        if coefficient < 0 {
+            fatalError("Cant' be shrinked with coefficient > 0 : \(coefficient)")
+        }
+        
+        let dcount = Double(count) * coefficient
+        let icount = Int(floor(dcount)) - 1
+        let cc = Element(dcount - Double(icount))
+        
+        if icount < 0 {
+            return []
+        }
+        
+        var result = [Element](repeating: 0, count: icount)
+        let step = count / icount
+        for i in stride(from: 0, to: count - 1, by: step) {
+            var s: Element = 0
+            var l: Int = 0
+            
+            for j in stride(from: i, to: i + step, by: 1) {
+                if j > 0 && j - i == 0 {
+                    s += self[j - 1] * cc
+                    l += 1
+                } else if i + 1 < count && j == i + step - 1 {
+                    s += self[j + 1] * cc
+                    l += 1
+                }
+                
+                s += self[j]
+                l += 1
+            }
+            
+            let ii = i / step
+            if ii < result.count {
+                result[ii] = s / Element(l)
+            }
+        }
+        
+        return result.map({ $0.isNaN ? 0 : $0 })
+    }
 }
