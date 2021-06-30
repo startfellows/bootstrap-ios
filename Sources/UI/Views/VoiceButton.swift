@@ -397,14 +397,14 @@ extension VoiceButton.VoiceState {
                 if i == Int((CGFloat(count) / 2)) {
                     let paramaters = LevelingLayerParamaters(
                         frame: superlayer.bounds,
-                        path: p_oval(in: CGRect(x: (superlayer.bounds.width - side) / 2, y: maximumHeight + side, width: side, height: side)).cgPath
+                        path: p_oval(in: CGRect(x: (superlayer.bounds.width - side) / 2, y: maximumHeight + side / 2, width: side, height: side)).cgPath
                     )
                     
                     levelingLayerParamaters.append(paramaters)
                 } else {
                     var paramaters = LevelingLayerParamaters(
                         frame: superlayer.bounds,
-                        path: p_oval(in: CGRect(x: CGFloat(i) * minimumWidth * 2, y: (maximumHeight - minimumHeight) / 2, width: minimumWidth, height: minimumWidth)).cgPath
+                        path: p_oval(in: CGRect(x: CGFloat(i) * minimumWidth * 2, y: (maximumHeight - side / 2) / 2, width: minimumWidth, height: minimumWidth)).cgPath
                     )
                     
                     paramaters.opacity = 0
