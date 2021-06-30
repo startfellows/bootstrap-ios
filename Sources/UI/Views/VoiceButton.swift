@@ -37,7 +37,7 @@ public class VoiceButton: UIControl {
         
         case `default`
         case path(_ path: UIBezierPath)
-        case leveling(_ l1: CGFloat, _ l2: CGFloat, _ l3: CGFloat, _ l4: CGFloat, _ l5: CGFloat, _ db1: CGFloat, _ db2: CGFloat)
+        case leveling(_ l1: CGFloat, _ l2: CGFloat, _ l3: CGFloat, _ db1: CGFloat, _ db2: CGFloat)
     }
     
     public override class var layerClass: AnyClass { Layer.self }
@@ -217,7 +217,7 @@ public class VoiceButton: UIControl {
             timingFunction = CAMediaTimingFunction(name: .easeIn)
         }
         
-        if case VoiceState.leveling(_, _, _, _, _, _, _) = to, from == .default {
+        if case VoiceState.leveling(_, _, _, _, _) = to, from == .default {
             duration *= 2
         }
         
@@ -262,10 +262,10 @@ public class VoiceButton: UIControl {
         var background0Scale: CGFloat = 1
         var background1Scale: CGFloat = 1
         
-        if case let VoiceButton.VoiceState.leveling(_, _, _, _, l5, db1, _) = to {
+        if case let VoiceButton.VoiceState.leveling(_, _, l3, db1, _) = to {
             let temporaryBackground0Scale = min(db1, 1.2)
             background0Scale += temporaryBackground0Scale
-            background1Scale += min(l5 / 2, temporaryBackground0Scale)
+            background1Scale += min(l3 / 2, temporaryBackground0Scale)
         }
         
         let background0ScaleInitial = (backgroundLayer0.presentation()?.path?.boundingBoxOfPath.width ?? backgroundLayer0.path?.boundingBoxOfPath.width ?? 1) / backgroundLayer0.bounds.width
@@ -336,8 +336,8 @@ extension VoiceButton.VoiceState: Equatable {
             return true
         case (.path(let lhs), .path(let rhs)):
             return lhs == rhs
-        case (.leveling(let ll1, let ll2, let ll3, let ll4, let ll5, let ldb1, let ldb2), .leveling(let rl1, let rl2, let rl3, let rl4, let rl5, let rdb1, let rdb2)):
-            return ll1 == rl1 && ll2 == rl2 && ll3 == rl3 && ll4 == rl4 && ll5 == rl5 && ldb1 == rdb1 && ldb2 == rdb2
+        case (.leveling(let ll1, let ll2, let ll3, let ldb1, let ldb2), .leveling(let rl1, let rl2, let rl3, let rdb1, let rdb2)):
+            return ll1 == rl1 && ll2 == rl2 && ll3 == rl3 && ldb1 == rdb1 && ldb2 == rdb2
         default:
             return false
         }
@@ -371,9 +371,9 @@ extension VoiceButton.VoiceState {
         var levelingLayerParamaters: [LevelingLayerParamaters] = []
         for i in 0..<count {
             switch self {
-            case .default, .leveling(_, _, _, _, _, _, _):
+            case .default, .leveling(_, _, _, _, _):
                 switch to {
-                case .default, .leveling(_, _, _, _, _, _, _):
+                case .default, .leveling(_, _, _, _, _):
                     levelingLayerParamaters.append(.none)
                 case .path(_):
                     if i == Int((CGFloat(count) / 2)) {
@@ -426,15 +426,15 @@ extension VoiceButton.VoiceState {
         
         var levelingHeights = [maximumHeight / 2, maximumHeight, maximumHeight / 2]
         switch self {
-        case .leveling(let l1, let l2, let l3, let l4, let l5, _, _):
-            levelingHeights = [step(l1), step(l2), step(l3), step(l4), step(l5)].map({ max($0 * maximumHeight, minimumHeight) })
+        case .leveling(let l1, let l2, let l3, _, _):
+            levelingHeights = [step(l1), step(l2), step(l3)].map({ max($0 * maximumHeight, minimumHeight) })
         default: break
         }
         
         var levelingLayerParamaters: [LevelingLayerParamaters] = []
         for i in 0..<count {
             switch self {
-            case .default, .leveling(_, _, _, _, _, _, _):
+            case .default, .leveling(_, _, _, _, _):
                 let path = p_rectangle(
                     in: CGRect(x: offset + CGFloat(i) * width * 2, y: (maximumHeight - levelingHeights[i]) / 2, width: width, height: levelingHeights[i]),
                     cornerRadii: CGSize(width: width / 2, height: width / 2)
