@@ -256,7 +256,7 @@ extension Array where Element == Double {
                 if j > 0 && j - i == 0 {
                     s += self[j - 1] * cc
                     l += 1
-                } else if i + 1 < count && j == i + step - 1 {
+                } else if i + 1 < count && j == i + step - 2 {
                     s += self[j + 1] * cc
                     l += 1
                 }
