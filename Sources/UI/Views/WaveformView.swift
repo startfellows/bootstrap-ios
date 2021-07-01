@@ -69,12 +69,11 @@ public class WaveformLayer: CALayer {
         
         let horizontal = layer.bounds.width > layer.bounds.height
         let side = horizontal ? layer.bounds.width : layer.bounds.height
-        let neededWidth = CGFloat(values.count) * (width * 2) - width
         let availableCount = Int(floor(side / CGFloat(width) / 2)) - 1
         
         var values = values
-        if neededWidth > side {
-            values = values.shrinked(with: Double(side / neededWidth))
+        if values.count > availableCount {
+            values = values.shrinked(to: availableCount)
         }
         
         if values.count < availableCount {
@@ -233,42 +232,33 @@ extension UIBezierPath {
 
 extension Array where Element == Double {
     
-    func shrinked(with coefficient: Double) -> [Element] {
-        if coefficient < 0 {
-            fatalError("Cant' be shrinked with coefficient > 0 : \(coefficient)")
+    public func shrinked(to icount: Int) -> [Element] {
+        if icount > count {
+            fatalError("Cant' be shrinked with count > cureent count : \(icount)")
         }
         
-        let dcount = Double(count) * coefficient
-        let icount = Int(floor(dcount)) - 1
-        let cc = Element(dcount - Double(icount))
-        
-        if icount < 0 {
+        if icount <= 0 {
             return []
         }
         
-        var result = [Element](repeating: 0, count: icount)
         let step = count / icount
-        for i in stride(from: 0, to: count - 1, by: step) {
+        var result = [Element](repeating: 0, count: icount)
+        
+        for i in stride(from: 0, to: count, by: step) {
             var s: Element = 0
             var l: Int = 0
             
+            let index = i / step
+            if index + 1 > icount {
+                break
+            }
+            
             for j in stride(from: i, to: i + step, by: 1) {
-                if j > 0 && j - i == 0 {
-                    s += self[j - 1] * cc
-                    l += 1
-                } else if i + 1 < count && j == i + step - 2 {
-                    s += self[j + 1] * cc
-                    l += 1
-                }
-                
                 s += self[j]
                 l += 1
             }
             
-            let ii = i / step
-            if ii < result.count {
-                result[ii] = s / Element(l)
-            }
+            result[index] = s / Element(l)
         }
         
         return result.map({ $0.isNaN ? 0 : $0 })
