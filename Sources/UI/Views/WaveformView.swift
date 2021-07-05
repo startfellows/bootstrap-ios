@@ -191,7 +191,7 @@ public class WaveformView: UIView {
         progress = 0
         itemWidth = 4
         
-        waveformBackgroundColor = UIColor.white.withAlphaComponent(0.7)
+        waveformBackgroundColor = UIColor.white.withAlphaComponent(0.5)
         waveformForegroundColor = UIColor.white
     }
 }

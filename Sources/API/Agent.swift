@@ -105,14 +105,18 @@ public class Agent {
 
 public extension Query {
     
-    func run(with agent: Agent, _ completion: @escaping ((Result<R, Error>) -> ())) {
-        agent.perform(self).receive(on: DispatchQueue.main).sink(receiveCompletion: { receive in
+    @discardableResult
+    func run(with agent: Agent, _ completion: @escaping ((Result<R, Error>) -> ())) -> AnyCancellable {
+        let publisher = agent.perform(self).receive(on: DispatchQueue.main).sink(receiveCompletion: { receive in
             switch receive {
             case .finished: break
             case .failure(let error): completion(.failure(error))
             }
         }, receiveValue: { result in
             completion(.success(result))
-        }).store(in: &agent.store.cancellable)
+        })
+        
+        publisher.store(in: &agent.store.cancellable)
+        return publisher
     }
 }

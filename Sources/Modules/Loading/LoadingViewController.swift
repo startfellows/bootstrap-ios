@@ -15,6 +15,9 @@ open class LoadingViewController: UIViewController {
     
     private var isAnimationInProgress: Bool = false
     
+    open var isKeyframeAnimation: Bool = false
+    open var animationDuration: TimeInterval = 0.82
+    
     public override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
@@ -26,12 +29,21 @@ open class LoadingViewController: UIViewController {
         isAnimationInProgress = true
         prepare()
         
-        UIView.animate(withDuration: 0.82, delay: 0.3, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
-            self.animate()
-        }, completion: { finished in
-            self.finish(finished)
-            self.delegate?.loadingViewController(self, didEndAnimation: finished)
-        })
+        if isKeyframeAnimation {
+            UIView.animateKeyframes(withDuration: animationDuration, delay: 0.0, options: .calculationModeCubicPaced, animations: {
+                self.animate()
+            }, completion: { finished in
+                self.finish(finished)
+                self.delegate?.loadingViewController(self, didEndAnimation: finished)
+            })
+        } else {
+            UIView.animate(withDuration: animationDuration, delay: 0.3, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.5, options: .curveEaseInOut, animations: {
+                self.animate()
+            }, completion: { finished in
+                self.finish(finished)
+                self.delegate?.loadingViewController(self, didEndAnimation: finished)
+            })
+        }
     }
     
     open func prepare() {

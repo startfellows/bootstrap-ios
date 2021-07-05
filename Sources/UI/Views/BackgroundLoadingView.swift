@@ -13,8 +13,8 @@ public class BackgroundLoadingView: UIView {
         case text(text: String)
     }
     
-    let loadingIndicatorView = UIActivityIndicatorView(style: .large)
-    let label: UILabel = UILabel()
+    public let loadingIndicatorView = UIActivityIndicatorView(style: .large)
+    public let label: UILabel = UILabel()
     
     public private(set) var state: State = .empty
     
@@ -41,6 +41,7 @@ public class BackgroundLoadingView: UIView {
         super.backgroundColor = .clear
         
         label.font = .systemFont(ofSize: 17, weight: .regular)
+        label.numberOfLines = 0
         loadingIndicatorView.hidesWhenStopped = false
         
         addSubview(loadingIndicatorView)
@@ -53,7 +54,8 @@ public class BackgroundLoadingView: UIView {
         super.layoutSubviews()
         loadingIndicatorView.center = CGPoint(x: bounds.midX, y: bounds.midY)
         
-        label.sizeToFit()
+        let size = label.sizeThatFits(CGSize(width: bounds.width - 32, height: .infinity))
+        label.bounds = CGRect(origin: .zero, size: size)
         label.center = CGPoint(x: bounds.midX, y: bounds.midY)
     }
     
