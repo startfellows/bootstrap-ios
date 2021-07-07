@@ -1,20 +1,14 @@
 //
 //  Created by Anton Spivak.
-//  
+//
 
 import UIKit
 
-public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
+public class CountingCollectionViewLayout: UICollectionViewFlowLayout {
     
     public override func prepare() {
         super.prepare()
         scrollDirection = .horizontal
-    }
-    
-    public override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
-        let layoutAttributes = super.finalLayoutAttributesForDisappearingItem(at: itemIndexPath)
-        layoutAttributes?.transform = .identity.translatedBy(x: 0, y: layoutAttributes?.bounds.height ?? 0)
-        return layoutAttributes
     }
     
     public override func shouldInvalidateLayout(forBoundsChange newBounds: CGRect) -> Bool {
@@ -39,7 +33,7 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
             let distance = (center - updatedLayoutAttributes.center.x)
             let ratio = distance / collectionView.bounds.width
             
-            let scale = max(min(cos(ratio), 1), 0.8)
+            let scale = max(min(cos(ratio * 2.5), 1), 0.3)
             let translate = (layoutAttributes.bounds.width - layoutAttributes.bounds.width * scale) / 2
             
             var transfrom: CGAffineTransform = .identity
@@ -47,6 +41,7 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
             transfrom = transfrom.scaledBy(x: scale, y: scale)
             
             updatedLayoutAttributes.transform = transfrom
+            updatedLayoutAttributes.alpha = scale
             updatedLayoutAttributesForElements.append(updatedLayoutAttributes)
         })
         
@@ -87,3 +82,4 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
         }
     }
 }
+
