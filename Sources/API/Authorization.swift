@@ -18,6 +18,11 @@ extension Authorization where Self: NSSecureCoding {
         agent.keychain.set(data, for: .security)
     }
     
+    public static func remove(assotiatedWith agent: Agent) {
+        let data: Data? = nil
+        agent.keychain.set(data, for: .security)
+    }
+    
     public static func current(assotiatedWith agent: Agent) -> Self? {
         let data = agent.keychain.data(for: .security)
         guard let data = data
