@@ -29,19 +29,32 @@ internal class Multipart {
                 if let value = value as? Data {
                     self.files[label] = value
                 } else {
-                    self.parameters[label] = child.value
+                    self.parameters[label] = value
                 }
             }
             
             let cmirror = Mirror(reflecting: child.value)
             if cmirror.displayStyle == .optional {
-                if let unwrapped = mirror.children.first?.value {
-                    pf(unwrapped, label)
+                if let value = flatten(cmirror.children.first?.value) {
+                    pf(value, label)
                 }
             } else {
                 pf(child.value, label)
             }
         })
+    }
+    
+    func flatten(_ opt: Any?) -> Any? {
+        guard let unwrapped = opt
+        else {
+            return nil
+        }
+
+        if Mirror(reflecting: unwrapped).displayStyle == .optional {
+            return flatten(Mirror(reflecting: unwrapped).children.first!.value)
+        } else {
+            return unwrapped
+        }
     }
     
     func data() -> Data {
