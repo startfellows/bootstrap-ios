@@ -31,10 +31,12 @@ class ErrorWindow: OverlayWindow {
             addSubview(button)
             
             button.setTitle(UIKitLocalizedString("Done"), for: .normal)
+            button.titleLabel?.font = .systemFont(ofSize: 24, weight: .semibold)
             
-            label.font = UIFont.systemFont(ofSize: 18, weight: .regular)
+            label.font = .systemFont(ofSize: 18, weight: .regular)
             label.textColor = .white
             label.numberOfLines = 0
+            label.textAlignment = .center
         }
 
         required init?(coder: NSCoder) {
@@ -62,7 +64,7 @@ class ErrorWindow: OverlayWindow {
         alpha = 0
         isUserInteractionEnabled = false
         isHidden = true
-        backgroundColor = UIColor.black.withAlphaComponent(0.84)
+        backgroundColor = UIColor.black.withAlphaComponent(0.94)
         
         let viewController = ViewController()
         viewController.loadViewIfNeeded()
