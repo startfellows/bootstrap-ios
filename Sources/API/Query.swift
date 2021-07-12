@@ -37,12 +37,27 @@ public struct QueryParameters: CustomStringConvertible {
     
     public init(_ values: [(String, Any?)]) {
         let query = values.compactMap({ element -> String? in
-            guard let value = element.1
+            guard var value = element.1
             else {
                 return nil
             }
+            
+            if let convertible = value as? StringConvertible {
+                value = convertible.description
+            }
+            
             return "\(element.0)=\(value)"
         }).joined(separator: "&")
         description = query.count == 0 ? "" : "?\(query)"
     }
+}
+
+fileprivate protocol StringConvertible {
+    
+    var description: String { get }
+}
+
+extension Array: StringConvertible {
+    
+    var description: String { compactMap({ "\($0)" }).joined(separator: ",") }
 }
