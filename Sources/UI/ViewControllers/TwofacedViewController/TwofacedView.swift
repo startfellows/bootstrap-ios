@@ -210,7 +210,7 @@ class TwofacedView: UIView {
         
         dynamicAnimatior.delegate = self
         
-        panGestureRecognizer.cancelsTouchesInView = false
+        panGestureRecognizer.cancelsTouchesInView = true
         panGestureRecognizer.delegate = self
         panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
         addGestureRecognizer(panGestureRecognizer)
