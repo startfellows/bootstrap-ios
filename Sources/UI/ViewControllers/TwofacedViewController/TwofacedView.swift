@@ -335,7 +335,7 @@ class TwofacedView: UIView {
         
         let decelerationBehavior = UIDynamicItemBehavior(items: [dynamicItem])
         decelerationBehavior.addLinearVelocity(velocity, for: dynamicItem)
-        decelerationBehavior.resistance = 2
+        decelerationBehavior.resistance = 4
         
         decelerationBehavior.action = { [weak self] in
             guard let self = self
@@ -349,8 +349,8 @@ class TwofacedView: UIView {
             if self.decelerationBehavior != nil && self.springBehavior == nil {
                 let springBehavior = UIAttachmentBehavior(item: self.dynamicItem, attachedToAnchor: CGPoint(x: 0, y: target))
                 springBehavior.length = 0
-                springBehavior.damping = 0.7
-                springBehavior.frequency = 4
+                springBehavior.damping = 0.78
+                springBehavior.frequency = 5
                 self.dynamicAnimatior.addBehavior(springBehavior)
                 self.springBehavior = springBehavior
             }
