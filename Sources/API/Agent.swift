@@ -35,6 +35,8 @@ public class Agent {
         var cancellable: Set<AnyCancellable> = []
     }
     
+    public typealias Middleware = (_ response: HTTPURLResponse) throws -> Void
+    
     let decoder = JSONDecoder()
     let encoder = JSONEncoder()
     
@@ -42,6 +44,7 @@ public class Agent {
     
     public let configuration: Configuration
     public let keychain: Keychain
+    public var middlewares: [Middleware] = []
     
     public init(configuration: Configuration) {
         self.configuration = configuration
@@ -77,7 +80,7 @@ public class Agent {
         let session = URLSession.shared
         let configuration = configuration
         let share = session.dataTaskPublisher(for: request)
-            .middleware(to: Empty.self, configuration: configuration)
+            .middleware(to: Empty.self, configuration: configuration, functions: middlewares)
             .map(\.data)
             .decode(type: Q.R.self, decoder: decoder)
             .share()

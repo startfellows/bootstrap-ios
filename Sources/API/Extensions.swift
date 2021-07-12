@@ -12,7 +12,7 @@ extension URLSession.DataTaskPublisher {
         case incorrectStatusCode(code: Int)
     }
     
-    func middleware<T: Model>(to type: T.Type, configuration: Agent.Configuration) -> Publishers.TryMap<Self, Self.Output> {
+    func middleware<T: Model>(to type: T.Type, configuration: Agent.Configuration, functions: [Agent.Middleware]) -> Publishers.TryMap<Self, Self.Output> {
         tryMap({ value in
             if configuration.printable == .verbose {
                 Swift.print("Did receive response: \(value.response)")
@@ -23,6 +23,10 @@ extension URLSession.DataTaskPublisher {
             else {
                 return value
             }
+            
+            try functions.forEach({ function in
+                try function(response)
+            })
             
             let statusCode = response.statusCode
             guard (200..<300).contains(statusCode)
