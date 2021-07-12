@@ -32,18 +32,24 @@ public class Recorder {
         
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
+        
         let inputFormat = inputNode.inputFormat(forBus: 0)
+        
+        var settings = inputFormat.settings
+        settings[AVLinearPCMIsNonInterleaved] = false
+        
+        let recordFormat = AVAudioFormat(settings: settings)
         
         inputNode.installTap(
             onBus: 0,
             bufferSize: 4096,
-            format: inputFormat,
+            format: recordFormat,
             block: { [weak self] (buffer: AVAudioPCMBuffer, time: AVAudioTime) in
                 self?.session?.accept(buffer, with: time)
             }
         )
         
-        session = try Session(engine: engine, fileURL: fileURL, format: inputFormat, type: format)
+        session = try Session(engine: engine, fileURL: fileURL, format: recordFormat ?? inputFormat, type: format)
         session?.engine.prepare()
         try session?.engine.start()
     }
