@@ -52,7 +52,7 @@ public class ContainerViewController: UIViewController {
             }
             
             contentViewController = viewController
-            UIView.animate(withDuration: 0.62, delay: 0.0, options: options!, animations: {
+            UIView.animate(withDuration: 0.21, delay: 0.0, options: options!, animations: {
                 viewController?.view.alpha = 1
                 previousContentViewController?.view.alpha = 0
                 
