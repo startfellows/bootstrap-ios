@@ -9,7 +9,7 @@ public final class Keychain {
     
     public struct Key: RawRepresentable {
         
-        static let security = Key(rawValue: "_default_api_security")!
+        static let security = Key(rawValue: "%%_default_api_security")!
         
         public var rawValue: String
         
