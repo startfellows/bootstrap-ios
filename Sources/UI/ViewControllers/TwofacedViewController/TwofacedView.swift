@@ -211,6 +211,7 @@ class TwofacedView: UIView {
         dynamicAnimatior.delegate = self
         
         panGestureRecognizer.cancelsTouchesInView = true
+        panGestureRecognizer.requiresExclusiveTouchType = true
         panGestureRecognizer.delegate = self
         panGestureRecognizer.addTarget(self, action: #selector(handlePan(_:)))
         addGestureRecognizer(panGestureRecognizer)
@@ -402,6 +403,13 @@ class TwofacedView: UIView {
 }
 
 extension TwofacedView: UIGestureRecognizerDelegate {
+    
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldReceive touch: UITouch) -> Bool {
+        if touch.view is UIControl {
+            return false
+        }
+        return true
+    }
     
     func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
         if otherGestureRecognizer.isKind(of: UIPanGestureRecognizer.self) {
