@@ -9,6 +9,7 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
     public override func prepare() {
         super.prepare()
         scrollDirection = .horizontal
+        collectionView?.decelerationRate = .fast
     }
     
     public override func finalLayoutAttributesForDisappearingItem(at itemIndexPath: IndexPath) -> UICollectionViewLayoutAttributes? {
@@ -57,33 +58,48 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
         guard let collectionView = collectionView else {
             return proposedContentOffset
         }
-
-        let halfWidth = collectionView.bounds.width * 0.5
-        let proposedContentOffsetCenterX = proposedContentOffset.x + halfWidth
         
-        var candidateLayoutAttributes: UICollectionViewLayoutAttributes? = nil
-        layoutAttributesForElements(in: collectionView.bounds)?.forEach({ layoutAttributes in
-            guard layoutAttributes.representedElementCategory == .cell
-            else {
-                return
-            }
-
-            if let currentCandidateLayoutAttributes = candidateLayoutAttributes {
-                let a = layoutAttributes.center.x - proposedContentOffsetCenterX
-                let b = currentCandidateLayoutAttributes.center.x - proposedContentOffsetCenterX
-
-                if abs(a) < abs(b) {
-                    candidateLayoutAttributes = layoutAttributes;
-                }
-            } else {
-                candidateLayoutAttributes = layoutAttributes
-            }
-        })
+        let pageLength: CGFloat
+        let approxPage: CGFloat
+        let currentPage: CGFloat
+        let speed: CGFloat
         
-        if let layoutAttributes = candidateLayoutAttributes {
-            return CGPoint(x : layoutAttributes.center.x - halfWidth, y : proposedContentOffset.y);
+        if scrollDirection == .horizontal {
+            pageLength = (self.itemSize.width + self.minimumLineSpacing)
+            approxPage = collectionView.contentOffset.x / pageLength
+            speed = velocity.x
         } else {
-            return proposedContentOffset
+            pageLength = (self.itemSize.height + self.minimumLineSpacing)
+            approxPage = collectionView.contentOffset.y / pageLength
+            speed = velocity.y
+        }
+        
+        if speed < 0 {
+            currentPage = ceil(approxPage)
+        } else if speed > 0 {
+            currentPage = floor(approxPage)
+        } else {
+            currentPage = round(approxPage)
+        }
+        
+        guard speed != 0 else {
+            if scrollDirection == .horizontal {
+                return CGPoint(x: currentPage * pageLength, y: 0)
+            } else {
+                return CGPoint(x: 0, y: currentPage * pageLength)
+            }
+        }
+        
+        var nextPage: CGFloat = currentPage + (speed > 0 ? 1 : -1)
+        
+        let velocityThresholdPerPage: CGFloat = 2
+        let increment = speed / velocityThresholdPerPage
+        nextPage += (speed < 0) ? ceil(increment) : floor(increment)
+        
+        if scrollDirection == .horizontal {
+            return CGPoint(x: nextPage * pageLength, y: 0)
+        } else {
+            return CGPoint(x: 0, y: nextPage * pageLength)
         }
     }
 }
