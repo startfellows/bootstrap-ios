@@ -54,6 +54,7 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
         return updatedLayoutAttributesForElements
     }
     
+    /// https://github.com/akxo/paging-collection-view-layout/blob/master/PagingCollectionViewLayout.swift
     public override func targetContentOffset(forProposedContentOffset proposedContentOffset: CGPoint, withScrollingVelocity velocity: CGPoint) -> CGPoint {
         guard let collectionView = collectionView else {
             return proposedContentOffset
