@@ -13,6 +13,8 @@ public class WaveformLayer: CALayer {
     @NSManaged var _backgroundColor: CGColor?
     @NSManaged var _foregroundColor: CGColor?
     
+    var direction: WaveformView.WaveformDirection = .horizontal
+    
     private let _background: CALayer = CALayer()
     private let _foreground: CAShapeLayer = CAShapeLayer()
     private let _mask: CAShapeLayer = CAShapeLayer()
@@ -67,7 +69,7 @@ public class WaveformLayer: CALayer {
         _background.frame = layer.bounds
         _mask.frame = layer.bounds
         
-        let horizontal = layer.bounds.width > layer.bounds.height
+        let horizontal = direction == .horizontal
         let side = horizontal ? layer.bounds.width : layer.bounds.height
         let availableCount = Int(floor(side / CGFloat(width) / 2)) - 1
         
@@ -81,7 +83,7 @@ public class WaveformLayer: CALayer {
             values.append(contentsOf: append)
         }
         
-        let path = UIBezierPath(waveform: values, in: layer.bounds)
+        let path = UIBezierPath(waveform: values, in: layer.bounds, direction: direction)
         _mask.path = path.cgPath
         mask = nil
         mask = _mask
@@ -130,6 +132,12 @@ public class WaveformLayer: CALayer {
 
 public class WaveformView: UIView {
     
+    public enum WaveformDirection {
+        
+        case vertical
+        case horizontal
+    }
+    
     public override class var layerClass: AnyClass { WaveformLayer.self }
     private var _layer: WaveformLayer { layer as! WaveformLayer }
     
@@ -177,6 +185,11 @@ public class WaveformView: UIView {
         }
     }
     
+    public var direction: WaveformDirection {
+        set { _layer.direction = newValue }
+        get { _layer.direction }
+    }
+    
     public override init(frame: CGRect) {
         super.init(frame: frame)
         initialize()
@@ -198,10 +211,10 @@ public class WaveformView: UIView {
 
 extension UIBezierPath {
     
-    public convenience init(waveform: [Double], in rect: CGRect) {
+    public convenience init(waveform: [Double], in rect: CGRect, direction: WaveformView.WaveformDirection) {
         self.init()
         
-        let vertical = rect.width < rect.height
+        let vertical = direction == .vertical
         let side = (vertical ? rect.height : rect.width) / CGFloat(waveform.count) / 2
         
         if waveform.count <= 0 {
