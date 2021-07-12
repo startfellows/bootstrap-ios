@@ -328,7 +328,7 @@ class TwofacedView: UIView {
             return
         }
         
-        let velocity = CGPoint(x: 0, y: abs(velocity.y))
+        let velocity = CGPoint(x: 0, y: abs(velocity.y / 4))
         let target = -state.offset(in: self)
         
         dynamicItem.center = containerView.frame.origin;
@@ -349,8 +349,8 @@ class TwofacedView: UIView {
             if self.decelerationBehavior != nil && self.springBehavior == nil {
                 let springBehavior = UIAttachmentBehavior(item: self.dynamicItem, attachedToAnchor: CGPoint(x: 0, y: target))
                 springBehavior.length = 0
-                springBehavior.damping = 0.78
-                springBehavior.frequency = 5
+                springBehavior.damping = 0.76
+                springBehavior.frequency = 4
                 self.dynamicAnimatior.addBehavior(springBehavior)
                 self.springBehavior = springBehavior
             }
