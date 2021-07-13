@@ -3,6 +3,7 @@
 //
 
 #if !TARGET_OS_OSX
+
 #import "OverlayWindow.h"
 
 @implementation OverlayWindow
@@ -12,4 +13,5 @@
 }
 
 @end
+
 #endif
