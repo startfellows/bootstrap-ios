@@ -40,9 +40,16 @@ public class VoiceButton: UIControl {
         case leveling(_ l1: CGFloat, _ l2: CGFloat, _ l3: CGFloat, _ db1: CGFloat, _ db2: CGFloat)
     }
     
+    public enum LevelingSize: CGFloat {
+        
+        case small = 2.5
+        case medium = 5.5
+    }
+    
     public override class var layerClass: AnyClass { Layer.self }
     
     public private(set) var voiceState: VoiceState = .default
+    public var levelingSize: LevelingSize = .medium
     
     private let backgroundLayer0: CAShapeLayer = CAShapeLayer()
     private let backgroundLayer1: CAShapeLayer = CAShapeLayer()
@@ -151,7 +158,7 @@ public class VoiceButton: UIControl {
         foregroundLayer.bounds = CGRect(x: 0, y: 0, width: bounds.width / 2, height: bounds.height / 2)
         foregroundLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
         
-        let levelingLayerParamaters = voiceState.levelingLayerParamaters(in: foregroundLayer)
+        let levelingLayerParamaters = voiceState.levelingLayerParamaters(in: foregroundLayer, size: levelingSize)
         for i in 0..<levelingLayers.count {
             levelingLayers[i].frame = levelingLayerParamaters[i].frame
             levelingLayers[i].path = levelingLayerParamaters[i].path
@@ -176,8 +183,8 @@ public class VoiceButton: UIControl {
     }
     
     private func updateVoiceStateForeground(_ from: VoiceState, to: VoiceState) {
-        let transitionProposed = from.levelingLayerParameters(in: foregroundLayer, to: to)
-        let toProposed = to.levelingLayerParamaters(in: foregroundLayer)
+        let transitionProposed = from.levelingLayerParameters(in: foregroundLayer, to: to, size: levelingSize)
+        let toProposed = to.levelingLayerParamaters(in: foregroundLayer, size: levelingSize)
         
         var offset: TimeInterval = CACurrentMediaTime()
         var duration: TimeInterval = 0.21
@@ -359,9 +366,9 @@ extension VoiceButton.VoiceState {
         var opacity: Float = 1
     }
     
-    func levelingLayerParameters(in superlayer: CALayer, to: VoiceButton.VoiceState) -> [LevelingLayerParamaters] {
+    func levelingLayerParameters(in superlayer: CALayer, to: VoiceButton.VoiceState, size: VoiceButton.LevelingSize) -> [LevelingLayerParamaters] {
         let count = 3
-        let minimumWidth: CGFloat = 2.5
+        let minimumWidth: CGFloat = size.rawValue
         
         let minimumHeight = minimumWidth
         let maximumHeight = superlayer.bounds.height
@@ -416,9 +423,9 @@ extension VoiceButton.VoiceState {
         return levelingLayerParamaters
     }
     
-    func levelingLayerParamaters(in superlayer: CALayer) -> [LevelingLayerParamaters] {
+    func levelingLayerParamaters(in superlayer: CALayer, size: VoiceButton.LevelingSize) -> [LevelingLayerParamaters] {
         let count = 3
-        let width: CGFloat = 5.5
+        let width: CGFloat = size.rawValue
         let offset: CGFloat = (superlayer.bounds.width - width * CGFloat(count * 2 - 1)) / 2
         
         let minimumHeight = width
