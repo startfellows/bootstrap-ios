@@ -148,7 +148,7 @@ public class VoiceButton: UIControl {
         backgroundLayer2.frame = bounds
         backgroundLayer2.path = UIBezierPath(roundedRect: bounds, byRoundingCorners: .allCorners, cornerRadii: CGSize(width: bounds.width / 2, height: bounds.height / 2)).cgPath
         
-        foregroundLayer.bounds = CGRect(x: 0, y: 0, width: 44, height: 34)
+        foregroundLayer.bounds = CGRect(x: 0, y: 0, width: bounds.width / 2, height: bounds.height / 2)
         foregroundLayer.position = CGPoint(x: bounds.midX, y: bounds.midY)
         
         let levelingLayerParamaters = voiceState.levelingLayerParamaters(in: foregroundLayer)
@@ -361,7 +361,7 @@ extension VoiceButton.VoiceState {
     
     func levelingLayerParameters(in superlayer: CALayer, to: VoiceButton.VoiceState) -> [LevelingLayerParamaters] {
         let count = 3
-        let minimumWidth: CGFloat = 5.5
+        let minimumWidth: CGFloat = 2.5
         
         let minimumHeight = minimumWidth
         let maximumHeight = superlayer.bounds.height
@@ -424,7 +424,7 @@ extension VoiceButton.VoiceState {
         let minimumHeight = width
         let maximumHeight = superlayer.bounds.height
         
-        var levelingHeights = [maximumHeight / 2, maximumHeight, maximumHeight / 2]
+        var levelingHeights = [maximumHeight / 3 * 2, maximumHeight, maximumHeight / 2]
         switch self {
         case .leveling(let l1, let l2, let l3, _, _):
             levelingHeights = [step(l1), step(l2), step(l3)].map({ max($0 * maximumHeight, minimumHeight) })
