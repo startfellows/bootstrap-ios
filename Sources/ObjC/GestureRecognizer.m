@@ -2,6 +2,8 @@
 //  Created by Anton Spivak.
 //  
 
+#import <Foundation/Foundation.h>
+
 #if !TARGET_OS_OSX
 
 #import "GestureRecognizer.h"

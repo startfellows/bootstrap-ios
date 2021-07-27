@@ -6,7 +6,18 @@ import UIKit
 
 final public class Application: UIApplication {
     
-    public override class var shared: Application { super.shared as! Application }
+    public class var shared: Application {
+        typealias alias = @convention(c) (Application.Type, Selector) -> Application
+        let sel = NSSelectorFromString("sharedApplication")
+        
+        if (Bundle.main.executablePath?.contains(".appex/") ?? false) || !responds(to: sel) {
+            fatalError("Application.shared not available in Application Extension")
+        } else {
+            let imp = method(for: sel)
+            let function = unsafeBitCast(imp, to: alias.self)
+            return function(self, sel)
+        }
+    }
     
     final var windowScenes: [WindowScene] { connectedScenes.compactMap({ $0 as? WindowScene }) }
     final var windowSceneForeground: WindowScene? { windowScenes.first(where: { $0.activationState == .foregroundActive }) }
