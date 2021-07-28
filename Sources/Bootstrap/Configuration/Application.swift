@@ -6,7 +6,7 @@ import UIKit
 
 final public class Application: UIApplication {
     
-    public class var shared: Application {
+    public class override var shared: Application {
         typealias alias = @convention(c) (Application.Type, Selector) -> Application
         let sel = NSSelectorFromString("sharedApplication")
         
