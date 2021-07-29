@@ -13,7 +13,7 @@ final public class Application: UIApplication {
         if (Bundle.main.executablePath?.contains(".appex/") ?? false) || !responds(to: sel) {
             fatalError("Application.shared not available in Application Extension")
         } else {
-            let imp = method(for: sel)
+            let imp = UIApplication.method(for: sel)
             let function = unsafeBitCast(imp, to: alias.self)
             return function(self, sel)
         }
