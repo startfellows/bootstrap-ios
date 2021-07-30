@@ -62,12 +62,19 @@ public class Agent {
         request.httpMethod = query.type.rawValue
         request.allHTTPHeaderFields = query.headers.merging(with: configuration.headers)
         
-        if query.headers["Content-Type"] == "multipart/form-data" {
+        switch query.headers["Content-Type"] {
+        case "multipart/form-data":
             assert(query.type != .get, "Query with Content-Type multipart/form-data can't be GET")
             if let multipart = try? Multipart(query: query) {
                 request.httpBody = multipart.data()
                 request.setValue("multipart/form-data; boundary=\(multipart.boundary)", forHTTPHeaderField: "Content-Type")
             }
+        case "application/json":
+            if let httpBody = try? encoder.encode(query.body), httpBody.count > 2 { // 2 is 'empty' body like '{}' string
+                request.httpBody = httpBody
+            }
+        default:
+            fatalError("Unsupported content type: \(query.headers["Content-Type"] ?? "Content-Type not provided").")
         }
         
         if query.secure,
