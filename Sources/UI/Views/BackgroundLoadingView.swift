@@ -40,7 +40,8 @@ public class BackgroundLoadingView: UIView {
     private func initialize() {
         super.backgroundColor = .clear
         
-        label.font = .systemFont(ofSize: 17, weight: .regular)
+        label.font = .systemFont(ofSize: 17, weight: .medium)
+        label.textAlignment = .center
         label.numberOfLines = 0
         loadingIndicatorView.hidesWhenStopped = false
         
