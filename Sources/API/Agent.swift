@@ -70,8 +70,13 @@ public class Agent {
                 request.setValue("multipart/form-data; boundary=\(multipart.boundary)", forHTTPHeaderField: "Content-Type")
             }
         case "application/json":
-            if let httpBody = try? encoder.encode(query.body), httpBody.count > 2 { // 2 is 'empty' body like '{}' string
-                request.httpBody = httpBody
+            do {
+                let httpBody = try encoder.encode(query.body)
+                if httpBody.count > 2 { // 2 is 'empty' body like '{}' string
+                    request.httpBody = httpBody
+                }
+            } catch {
+                print(error.localizedDescription)
             }
         default:
             fatalError("Unsupported content type: \(query.headers["Content-Type"] ?? "Content-Type not provided").")
