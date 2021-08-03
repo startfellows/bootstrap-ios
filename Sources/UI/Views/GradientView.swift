@@ -4,22 +4,21 @@
 
 import UIKit
 
-internal class GradientLayer: CALayer {
+internal class GradientLayer: CAGradientLayer {
     
     @NSManaged var angle: Double
-    @NSManaged var colors: [CGColor]
-    @NSManaged var locations: [Double]
     
-    let systemLayer: CAGradientLayer = CAGradientLayer()
+    override var needsDisplayOnBoundsChange: Bool {
+        set {}
+        get { true }
+    }
     
     override init() {
         super.init()
-        initialize()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
-        initialize()
     }
     
     override init(layer: Any) {
@@ -29,13 +28,7 @@ internal class GradientLayer: CALayer {
         }
         
         super.init(layer: layer)
-        
         angle = layer.angle
-        colors = layer.colors
-    }
-    
-    private func initialize() {
-        addSublayer(systemLayer)
     }
 
     private class func isAnimationKeyImplemented(_ key: String) -> Bool {
@@ -72,14 +65,15 @@ internal class GradientLayer: CALayer {
     }
     
     private func display(from layer: GradientLayer) {
-        systemLayer.frame = layer.bounds
-        
-        systemLayer.colors = layer.colors
-        systemLayer.locations = layer.locations.map({ NSNumber(floatLiteral: $0) })
-        
+        let disableActions = CATransaction.disableActions()
+        CATransaction.setDisableActions(true)
+
+        self.colors = layer.colors
         let points = layer._points()
-        systemLayer.startPoint = points.0
-        systemLayer.endPoint = points.1
+        startPoint = points.0
+        endPoint = points.1
+        
+        CATransaction.setDisableActions(disableActions)
     }
     
     private func _angle() -> Double {
@@ -148,7 +142,7 @@ public class GradientView: UIView {
     /// Gradient colors
     @objc public var colors: [UIColor] {
         set { _layer.colors = newValue.map({ $0.cgColor }) }
-        get { _layer.colors.map({ UIColor(cgColor: $0) }) }
+        get { ((_layer.colors as? [CGColor]) ?? []).map({ UIColor(cgColor: $0) }) }
     }
     
     /// Value in º
@@ -159,8 +153,8 @@ public class GradientView: UIView {
     
     ///
     @objc public var locations: [Double] {
-        set { _layer.locations = newValue }
-        get { _layer.locations }
+        set { _layer.locations = newValue.map({ NSNumber(floatLiteral: $0) }) }
+        get { (_layer.locations ?? []).map({ $0.doubleValue }) }
     }
     
     public override init(frame: CGRect) {
