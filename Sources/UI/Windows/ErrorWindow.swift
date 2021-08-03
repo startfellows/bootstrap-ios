@@ -23,15 +23,21 @@ class ErrorWindow: OverlayWindow {
     private class View: UIView {
         
         let label: UILabel = UILabel()
-        let button: UIButton = UIButton(type: .system)
+        
+        let actionButton: UIButton = UIButton(type: .system)
+        let closeButton: UIButton = UIButton(type: .system)
         
         override init(frame: CGRect) {
             super.init(frame: frame)
             addSubview(label)
-            addSubview(button)
+            addSubview(actionButton)
+            addSubview(closeButton)
             
-            button.setTitle(UIKitLocalizedString("Done"), for: .normal)
-            button.titleLabel?.font = .systemFont(ofSize: 24, weight: .semibold)
+            closeButton.setImage(UIImage(systemName: "xmark"), for: .normal)
+            closeButton.titleLabel?.font = .systemFont(ofSize: 24, weight: .semibold)
+            closeButton.tintColor = .white
+            
+            actionButton.titleLabel?.font = .systemFont(ofSize: 18, weight: .medium)
             
             label.font = .systemFont(ofSize: 18, weight: .regular)
             label.textColor = .white
@@ -52,12 +58,16 @@ class ErrorWindow: OverlayWindow {
             label.bounds.size = size
             label.center = CGPoint(x: bounds.midX, y: bounds.midY)
             
-            button.bounds = CGRect(x: 0, y: 0, width: size.width, height: 52)
-            button.center = CGPoint(x: bounds.midX, y: label.frame.maxY + 58)
+            actionButton.sizeToFit()
+            actionButton.center = CGPoint(x: bounds.midX, y: label.frame.maxY + actionButton.bounds.midY + 32)
+            
+            closeButton.sizeToFit()
+            closeButton.center = CGPoint(x: bounds.midX, y: bounds.maxY - safeAreaInsets.bottom - closeButton.bounds.midY - 32)
         }
     }
     
     private var viewController: ViewController { rootViewController as! ViewController }
+    private var action: UIWindowScene.Error.Action? = nil
     
     override init(windowScene: UIWindowScene) {
         super.init(windowScene: windowScene)
@@ -68,7 +78,11 @@ class ErrorWindow: OverlayWindow {
         
         let viewController = ViewController()
         viewController.loadViewIfNeeded()
-        viewController.errorView.button.addTarget(self, action: #selector(hide), for: .touchUpInside)
+        viewController.errorView.closeButton.addTarget(self, action: #selector(hide), for: .touchUpInside)
+        viewController.errorView.actionButton.addTarget(self, action: #selector(performActionIfNeeded), for: .touchUpInside)
+        
+        let tap = UITapGestureRecognizer(target: self, action: #selector(hide))
+        viewController.view.addGestureRecognizer(tap)
         
         rootViewController = viewController
     }
@@ -77,14 +91,18 @@ class ErrorWindow: OverlayWindow {
         fatalError("init(coder:) has not been implemented")
     }
     
-    func show(message: String) {
+    func show(message: String, additionalAction: UIWindowScene.Error.Action? = nil) {
         ErrorWindow.hold = self
         
         alpha = 0
         isHidden = false
         isUserInteractionEnabled = true
         
+        action = additionalAction
+        
         viewController.errorView.label.text = message
+        viewController.errorView.actionButton.setTitle(action?.title, for: .normal)
+
         
         viewController.errorView.setNeedsLayout()
         viewController.errorView.layoutIfNeeded()
@@ -93,6 +111,18 @@ class ErrorWindow: OverlayWindow {
         UIView.animate(withDuration: 0.3, delay: 0.0, options: .beginFromCurrentState, animations: {
             self.alpha = 1
         }, completion: nil)
+    }
+    
+    @objc func performActionIfNeeded() {
+        guard let action = action
+        else {
+            return
+        }
+        
+        action.handler()
+        
+        self.action = nil
+        hide()
     }
     
     @objc func hide() {

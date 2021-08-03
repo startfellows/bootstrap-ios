@@ -29,6 +29,17 @@ extension UIWindowScene {
     
     public struct Error {
         
+        public class Action {
+            
+            public let title: String
+            public let handler: () -> ()
+            
+            public init(title: String, handler: @escaping () -> ()) {
+                self.title = title
+                self.handler = handler
+            }
+        }
+        
         private let scene: UIWindowScene
         private var tag: Int { 36542356 }
         
@@ -36,10 +47,10 @@ extension UIWindowScene {
             self.scene = scene
         }
         
-        public func show(message: String) {
+        public func show(message: String, action: Action? = nil) {
             let window = scene.windows.first(where: { $0.tag == tag }) as? ErrorWindow ?? ErrorWindow(windowScene: scene)
             window.tag = tag
-            window.show(message: message)
+            window.show(message: message, additionalAction: action)
         }
     }
     
