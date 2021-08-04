@@ -61,7 +61,7 @@ internal class GradientLayer: CAGradientLayer {
     
     override func display() {
         super.display()
-        display(from: presentation() ?? self)
+        display(from: (actions ?? [:]).count > 0 ? (presentation() ?? self) : self)
     }
     
     private func display(from layer: GradientLayer) {
