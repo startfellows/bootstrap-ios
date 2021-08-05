@@ -74,7 +74,7 @@ class ErrorWindow: OverlayWindow {
         alpha = 0
         isUserInteractionEnabled = false
         isHidden = true
-        backgroundColor = UIColor.black.withAlphaComponent(0.94)
+        backgroundColor = UIColor.black.withAlphaComponent(0.96)
         
         let viewController = ViewController()
         viewController.loadViewIfNeeded()
