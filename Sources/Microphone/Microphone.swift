@@ -21,6 +21,13 @@ public class Recorder {
     public private(set) var session: Session? = nil
     public init() {}
     
+    public func prepare() {
+        let engine = AVAudioEngine()
+        let _ = engine.inputNode
+        // First time getter causes bad glitch in `record` mwthod
+        // So call it before
+    }
+    
     public func record(_ format: Format) throws {
         let fileManager = FileManager.default
         let documentsURL = fileManager.urls(for: .cachesDirectory, in: .userDomainMask)
