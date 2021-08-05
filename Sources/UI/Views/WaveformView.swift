@@ -66,6 +66,9 @@ public class WaveformLayer: CALayer {
     }
     
     private func display(from layer: WaveformLayer) {
+        let disableActions = CATransaction.disableActions()
+        CATransaction.setDisableActions(true)
+        
         _background.frame = layer.bounds
         _mask.frame = layer.bounds
         
@@ -85,7 +88,7 @@ public class WaveformLayer: CALayer {
         
         let path = UIBezierPath(waveform: values, in: layer.bounds, direction: direction)
         _mask.path = path.cgPath
-        mask = nil
+//        mask = nil
         mask = _mask
         
         let rect = CGRect(
@@ -94,10 +97,12 @@ public class WaveformLayer: CALayer {
             width: horizontal ? layer.bounds.width * progress : layer.bounds.width,
             height: horizontal ? layer.bounds.width : layer.bounds.height * progress
         )
+        
         _foreground.path = UIBezierPath(rect: rect).cgPath
         _foreground.fillColor = _foregroundColor
-        
         _background.backgroundColor = _backgroundColor
+        
+        CATransaction.setDisableActions(disableActions)
     }
     
     public override func action(forKey event: String) -> CAAction? {
