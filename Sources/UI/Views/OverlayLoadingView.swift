@@ -4,15 +4,21 @@
 
 import UIKit
 
-class LoadingWindowView: UIView {
+class OverlayLoadingView: UIView {
     
     private let gradientView: GradientView = GradientView()
-    private let gradientMaskView: LoadingWindowViewMaskView = LoadingWindowViewMaskView()
+    private let gradientMaskView: OverlayLoadingViewMaskView = OverlayLoadingViewMaskView()
     
     private var isAnimationInProgress: Bool = false
+    var cornerRadius: CGFloat = UIScreen.main.displayCornerRadius
+    var cornerCurve: CALayerCornerCurve = .continuous
     
     override init(frame: CGRect) {
         super.init(frame: frame)
+        
+        alpha = 0
+        backgroundColor = UIColor.black.withAlphaComponent(0.8)
+        
         addSubview(gradientView)
         gradientView.mask = gradientMaskView
     }
@@ -24,62 +30,97 @@ class LoadingWindowView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         gradientMaskView.frame = bounds
+        gradientMaskView.cornerRadius = cornerRadius
+        gradientMaskView.cornerCurve = cornerCurve
         gradientView.frame = bounds
     }
     
-    func startAnimation() {
+    func startAnimation(delay: TimeInterval = 0.0) {
         guard !isAnimationInProgress
         else {
             return
         }
         
-        gradientMaskView.animate(with: 2.0)
+        alpha = 0
+        isUserInteractionEnabled = true
+        
+        layer.removeAllAnimations()
+        UIView.animate(withDuration: 0.3, delay: delay, options: .beginFromCurrentState, animations: {
+            self.alpha = 1
+            self.gradientMaskView.animate(with: 1.0)
+        }, completion: nil)
     }
     
-    func stopAnimation() {
+    func stopAnimation(completion: (() -> ())?) {
         guard isAnimationInProgress
         else {
+            completion?()
             return
         }
         
-        isAnimationInProgress = false
+        // Animation doesn't start yet
+        if layer.presentation()?.opacity != 0 {
+            layer.removeAllAnimations()
+            
+            alpha = 0
+            completion?()
+            
+            return
+        }
+        
+        // Animation in progress right now
+        if let presentationLayer = layer.presentation(), presentationLayer.opacity < 0 {
+            let opacity = presentationLayer.opacity
+            layer.removeAllAnimations()
+            layer.opacity = opacity
+        }
+        
+        UIView.animate(withDuration: 0.3, delay: 0.0, options: .beginFromCurrentState, animations: {
+            self.alpha = 0
+        }, completion: { finished in
+            self.alpha = 0
+            self.isAnimationInProgress = false
+            completion?()
+        })
     }
 }
 
-extension LoadingWindowView: LoadingWindowViewMaskViewDelegate {
+extension OverlayLoadingView: OverlayLoadingViewMaskViewDelegate {
     
-    fileprivate func loadingWindowViewMaskViewShouldRestartAnimation(_ view: LoadingWindowViewMaskView) -> Bool {
+    fileprivate func overlayLoadingViewMaskViewShouldRestartAnimation(_ view: OverlayLoadingViewMaskView) -> Bool {
         return isAnimationInProgress
     }
 }
 
 // MARK: LoadingWindowViewMaskViewDelegate
-fileprivate protocol LoadingWindowViewMaskViewDelegate: AnyObject {
+fileprivate protocol OverlayLoadingViewMaskViewDelegate: AnyObject {
     
-    func loadingWindowViewMaskViewShouldRestartAnimation(_ view: LoadingWindowViewMaskView) -> Bool
+    func overlayLoadingViewMaskViewShouldRestartAnimation(_ view: OverlayLoadingViewMaskView) -> Bool
 }
 
 // MARK: LoadingWindowViewMaskView
-fileprivate class LoadingWindowViewMaskView: UIView {
+fileprivate class OverlayLoadingViewMaskView: UIView {
     
     override class var layerClass: AnyClass { CAShapeLayer.self }
     
     var shapeLayer: CAShapeLayer { self.layer as! CAShapeLayer }
     var animationDuration: TimeInterval = 1
     
-    weak var delegate: LoadingWindowViewMaskViewDelegate? = nil
+    var cornerRadius: CGFloat = UIScreen.main.displayCornerRadius
+    var cornerCurve: CALayerCornerCurve = .continuous
+    
+    weak var delegate: OverlayLoadingViewMaskViewDelegate? = nil
     
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        let displayCornerRadius = UIScreen.main.displayCornerRadius
-        let cornerRadius = displayCornerRadius == 0 ? 4 : displayCornerRadius
-        
+        let cornerRadius = self.cornerRadius == 0 ? 4 : self.cornerRadius
         shapeLayer.path = path(frame: bounds, cornerRadius: cornerRadius).cgPath
         shapeLayer.lineWidth = 3
         shapeLayer.fillColor = UIColor.clear.cgColor
         shapeLayer.strokeColor = UIColor.white.cgColor
         
+        shapeLayer.lineJoin = .round
         shapeLayer.strokeStart = 0
         shapeLayer.strokeEnd = 0
     }
@@ -159,15 +200,15 @@ fileprivate class LoadingWindowViewMaskView: UIView {
         path.apply(CGAffineTransform(translationX: frame.origin.x, y: frame.origin.y))
 
         return path;
-    } 
+    }
 }
 
-extension LoadingWindowViewMaskView: CAAnimationDelegate {
+extension OverlayLoadingViewMaskView: CAAnimationDelegate {
     
     func animationDidStop(_ animation: CAAnimation, finished flag: Bool) {
         var delegateShouldRestart = true
         if let delegate = delegate {
-            delegateShouldRestart = delegate.loadingWindowViewMaskViewShouldRestartAnimation(self)
+            delegateShouldRestart = delegate.overlayLoadingViewMaskViewShouldRestartAnimation(self)
         }
         
         guard flag && delegateShouldRestart

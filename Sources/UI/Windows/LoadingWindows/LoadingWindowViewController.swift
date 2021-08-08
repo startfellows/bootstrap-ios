@@ -8,9 +8,9 @@ class LoadingWindowViewController: UIViewController {
     
     override var preferredStatusBarStyle: UIStatusBarStyle { .lightContent }
     
-    var loadingView: LoadingWindowView { view as! LoadingWindowView }
+    var loadingView: OverlayLoadingView { view as! OverlayLoadingView }
     
     override func loadView() {
-        self.view = LoadingWindowView(frame: .zero)
+        self.view = OverlayLoadingView(frame: .zero)
     }
 }
