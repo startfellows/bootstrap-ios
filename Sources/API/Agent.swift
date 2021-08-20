@@ -18,7 +18,7 @@ public class Agent {
         
         public let baseURL: URL
         public let headers: [String : String]
-        public var printable: Printable = .verbose
+        public var printable: Printable = .failure
         
         public var keychainServiceName: String
         public var accessGroup: String?
@@ -76,7 +76,10 @@ public class Agent {
                     request.httpBody = httpBody
                 }
             } catch {
-                print(error.localizedDescription)
+                switch configuration.printable {
+                case .failure, .verbose: print("Did receive error while encoding query \(error.localizedDescription)")
+                default: break
+                }
             }
         default:
             fatalError("Unsupported content type: \(query.headers["Content-Type"] ?? "Content-Type not provided").")
@@ -102,7 +105,7 @@ public class Agent {
             case .finished: break
             case .failure(let error):
                 switch configuration.printable {
-                case .failure, .verbose: print("Did receive failure: \(error)")
+                case .failure, .verbose: print("Did receive error `\(error)` for path: `\(query.path)`")
                 default: break
                 }
             }
