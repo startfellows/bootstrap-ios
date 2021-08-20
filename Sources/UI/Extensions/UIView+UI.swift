@@ -40,3 +40,23 @@ extension UIView {
     
     public var loading: Loading { Loading(view: self) }
 }
+
+extension UIView {
+
+    public static func instantiate<T : UIView>(from nibName: String?) -> T {
+        var name: String
+        if let argument = nibName {
+            name = argument
+        } else {
+            name = String(describing: T.self)
+        }
+        
+        guard let view = Bundle(for: self).loadNibNamed(name, owner: nil, options: nil)?.first as? T
+        else {
+            fatalError("Could not load nib named \(name) for view type: \(self)")
+        }
+        
+        view.translatesAutoresizingMaskIntoConstraints = true
+        return view
+    }
+}
