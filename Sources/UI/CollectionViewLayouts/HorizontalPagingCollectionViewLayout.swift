@@ -93,7 +93,7 @@ public class HorizontalPagingCollectionViewLayout: UICollectionViewFlowLayout {
         
         var nextPage: CGFloat = currentPage + (speed > 0 ? 1 : -1)
         
-        let velocityThresholdPerPage: CGFloat = 2
+        let velocityThresholdPerPage: CGFloat = 5
         let increment = speed / velocityThresholdPerPage
         nextPage += (speed < 0) ? ceil(increment) : floor(increment)
         
