@@ -12,8 +12,9 @@ public class Session {
     let file: AVAudioFile
     let time: TimeInterval
     
-    let recognizer: SFSpeechRecognizer
-    var request: SFSpeechAudioBufferRecognitionRequest
+    let authorization: SFSpeechRecognizerAuthorizationStatus = SFSpeechRecognizer.authorizationStatus()
+    var recognizer: SFSpeechRecognizer? = nil
+    var request: SFSpeechAudioBufferRecognitionRequest? = nil
     var task: SFSpeechRecognitionTask? = nil
     
     let processor: Processor
@@ -28,14 +29,16 @@ public class Session {
         self.file = try AVAudioFile(forWriting: fileURL, settings: format.settings, commonFormat: .pcmFormatFloat32, interleaved: false)
         self.time = -1
         
-        guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "ru-RU"))
-        else {
-            throw Error.recognition
+        if authorization == .authorized {
+            guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: "ru-RU"))
+            else {
+                throw Error.recognition
+            }
+            
+            self.recognizer = recognizer
+            self.request = SFSpeechAudioBufferRecognitionRequest()
+            self.request?.shouldReportPartialResults = true
         }
-        
-        self.recognizer = recognizer
-        self.request = SFSpeechAudioBufferRecognitionRequest()
-        self.request.shouldReportPartialResults = true
         
         self.processor = Processor()
     }
@@ -47,13 +50,13 @@ public class Session {
             })
         }
         
-        if task == nil {
-            task = recognizer.recognitionTask(with: request, resultHandler: { [weak self] (value, error) in
+        if let request = request, task == nil {
+            task = recognizer?.recognitionTask(with: request, resultHandler: { [weak self] (value, error) in
                 self?.text = value?.bestTranscription.formattedString ?? ""
             })
         }
         
-        request.append(buffer)
+        request?.append(buffer)
     
         do {
             try file.write(from: buffer)
