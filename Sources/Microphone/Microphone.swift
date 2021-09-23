@@ -22,6 +22,12 @@ public class Recorder {
     public init() {}
     
     public func prepare() {
+        guard AVAudioSession.sharedInstance().recordPermission == .granted
+        else {
+            // In this case system trigger privacy alert
+            return
+        }
+        
         let engine = AVAudioEngine()
         let _ = engine.inputNode
         // First time getter causes bad glitch in `record` mwthod
