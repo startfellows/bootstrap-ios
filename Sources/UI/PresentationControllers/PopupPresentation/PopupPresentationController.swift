@@ -31,10 +31,27 @@ internal final class PopupPresentationController: UIPresentationController {
     }
     
     override var frameOfPresentedViewInContainerView: CGRect {
-        var frame = presentingView.frame.inset(by: presentedViewController.popupPresentationInsets)
+        let insets = presentedViewController.popupPresentationInsets.insets(for: presentedView ?? UIView(), in: presentingView)
+        var frame = presentingView.frame.inset(by: insets)
+        
         if presentedViewController.popupPresentationShouldRespectSafeAreaInsets {
-            frame = frame.inset(by: presentingView.safeAreaInsets)
+            var additionalInsets = UIEdgeInsets.zero
+            
+            let hdiff = frame.width - presentingView.frame.inset(by: presentingView.safeAreaInsets).width
+            if hdiff > 0 {
+                additionalInsets.left = hdiff / 2
+                additionalInsets.right = hdiff / 2
+            }
+            
+            let vdiff = frame.height - presentingView.frame.inset(by: presentingView.safeAreaInsets).height
+            if vdiff > 0 {
+                additionalInsets.top = hdiff / 2
+                additionalInsets.bottom = hdiff / 2
+            }
+            
+            frame = frame.inset(by: additionalInsets)
         }
+        
         return frame
     }
     

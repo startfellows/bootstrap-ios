@@ -5,18 +5,22 @@
 import UIKit
 import ObjectiveC.runtime
 
+struct PopupEdgeInsets {
+    
+}
+
 public protocol PopupPresentationDelegate: AnyObject {
     
-    var popupPresentationInsets: UIEdgeInsets { get }
+    var popupPresentationInsets: PopupPresentationInsets { get }
     var popupPresentationShouldRespectSafeAreaInsets: Bool { get }
     var popupPresentationShouldHideWhenUserDidInteractDimmingView: Bool { get }
 }
 
 extension UIViewController: PopupPresentationDelegate {
     
-    public var popupPresentationInsets: UIEdgeInsets { UIEdgeInsets(top: 124, left: 16, bottom: 135, right: 16) }
-    public var popupPresentationShouldRespectSafeAreaInsets: Bool { true }
-    public var popupPresentationShouldHideWhenUserDidInteractDimmingView: Bool { true }
+    @objc open var popupPresentationInsets: PopupPresentationInsets { PopupPresentationInsetsConcrete(top: 124, left: 16, bottom: 135, right: 16) }
+    @objc open var popupPresentationShouldRespectSafeAreaInsets: Bool { true }
+    @objc open var popupPresentationShouldHideWhenUserDidInteractDimmingView: Bool { true }
 }
 
 extension UIViewController {
